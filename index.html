@@ -1,699 +1,3898 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mi Pizarra Familiar</title>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Nunito',sans-serif;background:#e8e0d4;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:16px;}
-.app{width:100%;max-width:820px;}
-
-/* STATUS BAR */
-#status-bar{text-align:center;font-size:12px;padding:4px 10px;border-radius:6px;margin-bottom:8px;display:none;}
-#status-bar.ok{background:#bbf7d0;color:#166534;display:block;}
-#status-bar.err{background:#fecaca;color:#991b1b;display:block;}
-#status-bar.info{background:#bfdbfe;color:#1e40af;display:block;}
-
-/* LOGIN */
-.login-wrap{min-height:92vh;display:flex;align-items:center;justify-content:center;background:#f0ebe0;border-radius:14px;}
-.login-box{background:white;border-radius:14px;border:1.5px solid #ddd;padding:36px 30px;width:320px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.08);}
-.login-logo{font-family:'Caveat',cursive;font-size:36px;font-weight:700;color:#2d2d2d;margin-bottom:4px;}
-.login-sub{font-size:13px;color:#999;margin-bottom:28px;}
-.login-inp{width:100%;font-family:'Nunito',sans-serif;font-size:14px;padding:10px 14px;border:1.5px solid #ddd;border-radius:9px;margin-bottom:10px;color:#333;background:#fafafa;}
-.login-inp:focus{outline:none;border-color:#888;}
-.login-btn{width:100%;background:#2d2d2d;color:white;border:none;border-radius:9px;padding:11px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;transition:background .2s;}
-.login-btn:hover{background:#444;}
-.login-err{font-size:12px;color:#e24b4a;margin-top:10px;min-height:18px;}
-
-/* NAV */
-.nav{display:flex;gap:8px;padding:10px 14px;background:#2d2d2d;border-radius:12px 12px 0 0;align-items:center;flex-wrap:wrap;}
-.nav-title{font-family:'Caveat',cursive;font-size:22px;color:#fff;font-weight:700;flex:1;}
-.sync-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;display:inline-block;margin-right:4px;}
-.sync-dot.off{background:#f87171;}
-.nav-btn{font-family:'Nunito',sans-serif;font-size:12px;font-weight:600;padding:5px 13px;border-radius:20px;border:none;cursor:pointer;transition:all .2s;}
-.nav-ctrl{background:transparent;color:#ccc;border:1.5px solid #555;}
-.nav-active{background:#555;color:#fff;border-color:#555 !important;}
-.nav-view{background:#f5f0e8;color:#2d2d2d;}
-.nav-logout{background:transparent;color:#e8a87c;border:1.5px solid #e8a87c;font-size:11px;padding:4px 10px;}
-.nav-logout:hover{background:#e8a87c;color:#2d2d2d;}
-
-/* PANEL */
-.panel{background:#f5f0e8;padding:14px;border-radius:0 0 12px 12px;}
-.ptabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
-.ptab{font-family:'Caveat',cursive;font-size:17px;padding:5px 16px;border:2px solid #ccc;border-radius:20px;background:white;cursor:pointer;color:#666;transition:all .2s;}
-.ptab.on{background:#2d2d2d;color:white;border-color:#2d2d2d;}
-.psec{display:none;}
-.psec.on{display:block;}
-.board{background:white;border-radius:11px;border:1.5px solid #ddd;padding:16px;}
-.stitle{font-family:'Caveat',cursive;font-size:19px;font-weight:700;color:#444;margin-bottom:12px;border-bottom:2px dashed #e0d8cc;padding-bottom:6px;}
-.inp{font-family:'Nunito',sans-serif;font-size:13px;padding:8px 11px;border:1.5px solid #ddd;border-radius:8px;width:100%;color:#333;background:#fafafa;margin-bottom:7px;}
-.inp:focus{outline:none;border-color:#888;}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.abtn{background:#2d2d2d;color:white;border:none;border-radius:8px;padding:9px 16px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:2px;transition:background .2s;}
-.abtn:hover{background:#444;}
-.abtn.cancel{background:#999;}
-.ebtn{background:#e8f0fe;color:#185fa5;border:none;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Nunito',sans-serif;}
-.dbtn{background:#fee2e2;color:#a32d2d;border:none;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Nunito',sans-serif;}
-.item-list{margin-top:12px;display:flex;flex-direction:column;gap:7px;max-height:200px;overflow-y:auto;}
-.p-item{display:flex;align-items:flex-start;gap:8px;padding:8px 11px;background:#f9f6f0;border-radius:8px;font-size:13px;color:#444;}
-.p-item-main{flex:1;line-height:1.5;}
-.p-label{font-family:'Caveat',cursive;font-size:15px;font-weight:700;color:#c0703a;}
-.p-actions{display:flex;gap:5px;flex-shrink:0;align-items:flex-start;padding-top:2px;}
-.cdot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;flex-shrink:0;}
-.cdot.sel{border-color:#333;transform:scale(1.15);}
-.color-row{display:flex;gap:7px;align-items:center;margin-bottom:9px;}
-.msg-chip{font-family:'Caveat',cursive;font-size:17px;padding:6px 11px;border-radius:7px;display:flex;align-items:center;gap:6px;}
-.msg-wall{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;}
-.pdot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
-.pdot.sel{border-color:#333;transform:scale(1.15);}
-.tool-btn{font-family:'Nunito',sans-serif;font-size:12px;padding:5px 11px;border:1.5px solid #ccc;border-radius:6px;cursor:pointer;background:white;color:#555;}
-.tool-btn.on{background:#2d2d2d;color:white;border-color:#2d2d2d;}
-.canvas-tools{display:flex;gap:7px;align-items:center;margin-bottom:9px;flex-wrap:wrap;}
-#pCanvas{border:1.5px solid #ddd;border-radius:9px;cursor:crosshair;touch-action:none;display:block;background:white;max-width:100%;}
-.edit-banner{font-family:'Caveat',cursive;font-size:15px;color:#c0703a;margin-bottom:7px;background:#fff8f0;border-radius:7px;padding:5px 10px;border-left:3px solid #e8a87c;}
-.empty-h{font-size:12px;color:#bbb;font-style:italic;text-align:center;padding:18px 0;}
-
-/* PIZARRA VIEW */
-.pizarra-view{display:none;background:#f0ebe0;border-radius:0 0 12px 12px;padding:14px;}
-.pizarra-view.visible{display:block;}
-.piz-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-.piz-clock{font-family:'Caveat',cursive;font-size:17px;color:#888;}
-.fullbtn{background:#f5f0e8;color:#555;border:1.5px solid #ccc;border-radius:7px;font-size:12px;padding:4px 10px;cursor:pointer;font-family:'Nunito',sans-serif;}
-.fullbtn:hover{background:#e0dbd0;}
-.piz-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.piz-card{background:white;border-radius:11px;border:2px solid #ddd;padding:13px;overflow:hidden;}
-.piz-ctitle{font-family:'Caveat',cursive;font-size:18px;font-weight:700;color:#444;border-bottom:2px dashed #e8dfc8;padding-bottom:5px;margin-bottom:9px;}
-.piz-event{display:flex;align-items:baseline;gap:7px;padding:4px 8px;background:#fff8f0;border-radius:6px;border-left:4px solid #e8a87c;margin-bottom:4px;}
-.piz-edate{font-family:'Caveat',cursive;font-size:14px;font-weight:700;color:#c0703a;white-space:nowrap;flex-shrink:0;}
-.piz-eact{font-size:12px;color:#444;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.piz-contact{display:flex;gap:8px;align-items:center;padding:4px 8px;background:#f0f7ff;border-radius:6px;border-left:4px solid #5b9bd5;margin-bottom:4px;}
-.piz-av{width:28px;height:28px;border-radius:50%;background:#d0e8f8;display:flex;align-items:center;justify-content:center;font-family:'Caveat',cursive;font-size:12px;font-weight:700;color:#185fa5;flex-shrink:0;}
-.piz-cname{font-size:12px;font-weight:600;color:#333;}
-.piz-ctel{font-family:'Caveat',cursive;font-size:14px;color:#185fa5;}
-.piz-msgs{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;}
-.piz-msg{font-family:'Caveat',cursive;font-size:17px;padding:5px 10px;border-radius:6px;line-height:1.3;}
-#pizCanvas{border-radius:8px;display:block;max-width:100%;border:1px solid #eee;}
-
-@media(max-width:600px){
-  .piz-grid{grid-template-columns:1fr;}
-  .row2{grid-template-columns:1fr;}
-}
-</style>
-</head>
-<body>
-<div class="app">
-  <div id="status-bar"></div>
-
-  <!-- LOGIN -->
-  <div class="login-wrap" id="login-screen">
-    <div class="login-box">
-      <div class="login-logo">📋 Mi Pizarra</div>
-      <div class="login-sub">Acceso familiar seguro</div>
-      <input class="login-inp" type="text" id="l-user" placeholder="Usuario" autocomplete="off">
-      <input class="login-inp" type="password" id="l-pass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLogin()">
-      <button class="login-btn" onclick="doLogin()">Entrar</button>
-      <div class="login-err" id="login-err"></div>
-    </div>
-  </div>
-
-  <!-- APP -->
-  <div id="main-app" style="display:none;">
-    <div class="nav">
-      <span class="nav-title">
-        <span class="sync-dot" id="sync-dot"></span>
-        📋 Pizarra Familiar
-      </span>
-      <button class="nav-btn nav-ctrl nav-active" id="btn-ctrl" onclick="switchView('panel')">⚙️ Panel</button>
-      <button class="nav-btn nav-view" id="btn-view" onclick="switchView('pizarra')">👁 Ver pizarra</button>
-      <button class="nav-btn nav-logout" onclick="doLogout()">Salir</button>
-    </div>
-
-    <!-- PANEL -->
-    <div class="panel" id="panel-view">
-      <div class="ptabs">
-        <button class="ptab on" onclick="showPTab('cal',this)">📅 Calendario</button>
-        <button class="ptab" onclick="showPTab('con',this)">📞 Contactos</button>
-        <button class="ptab" onclick="showPTab('msg',this)">💬 Mensajes</button>
-        <button class="ptab" onclick="showPTab('draw',this)">🎨 Dibujo</button>
-      </div>
-
-      <!-- CALENDARIO -->
-      <div class="psec on board" id="psec-cal">
-        <div class="stitle">Recordatorios y eventos</div>
-        <div class="edit-banner" id="cal-banner" style="display:none;">✏️ Editando evento — modifica y guarda</div>
-        <div class="row2">
-          <input class="inp" type="date" id="cal-fecha">
-          <input class="inp" type="time" id="cal-hora" value="10:00">
-        </div>
-        <input class="inp" type="text" id="cal-act" placeholder="Actividad (ej: Cita con el médico)">
-        <div style="display:flex;gap:7px;">
-          <button class="abtn" id="cal-save-btn" onclick="saveEvento()">+ Agregar</button>
-          <button class="abtn cancel" id="cal-cancel-btn" onclick="cancelEdit('cal')" style="display:none;width:auto;padding:9px 14px;">✕</button>
-        </div>
-        <div class="item-list" id="cal-list"></div>
-      </div>
-
-      <!-- CONTACTOS -->
-      <div class="psec board" id="psec-con">
-        <div class="stitle">Números y contactos</div>
-        <div class="edit-banner" id="con-banner" style="display:none;">✏️ Editando contacto</div>
-        <div class="row2">
-          <input class="inp" type="text" id="con-nom" placeholder="Nombre">
-          <input class="inp" type="tel" id="con-tel" placeholder="Teléfono">
-        </div>
-        <input class="inp" type="text" id="con-nota" placeholder="Nota opcional (ej: llamar antes de las 18:00)">
-        <div style="display:flex;gap:7px;">
-          <button class="abtn" id="con-save-btn" onclick="saveContacto()">+ Agregar</button>
-          <button class="abtn cancel" id="con-cancel-btn" onclick="cancelEdit('con')" style="display:none;width:auto;padding:9px 14px;">✕</button>
-        </div>
-        <div class="item-list" id="con-list"></div>
-      </div>
-
-      <!-- MENSAJES -->
-      <div class="psec board" id="psec-msg">
-        <div class="stitle">Mensajes y notas</div>
-        <div class="color-row">
-          <span style="font-size:12px;color:#888;">Color:</span>
-          <div class="cdot sel" style="background:#fde68a" onclick="selMC(this,'#fde68a','#92400e')"></div>
-          <div class="cdot" style="background:#fbcfe8" onclick="selMC(this,'#fbcfe8','#9d174d')"></div>
-          <div class="cdot" style="background:#bbf7d0" onclick="selMC(this,'#bbf7d0','#166534')"></div>
-          <div class="cdot" style="background:#bfdbfe" onclick="selMC(this,'#bfdbfe','#1e40af')"></div>
-          <div class="cdot" style="background:#fecaca" onclick="selMC(this,'#fecaca','#991b1b')"></div>
-        </div>
-        <div style="display:flex;gap:7px;">
-          <input class="inp" style="margin:0;flex:1" id="msg-txt" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter')addMsg()">
-          <button class="abtn" style="width:auto;margin:0;padding:9px 16px;" onclick="addMsg()">+</button>
-        </div>
-        <div class="msg-wall" id="msg-wall"></div>
-      </div>
-
-      <!-- DIBUJO -->
-      <div class="psec board" id="psec-draw">
-        <div class="stitle">Pizarrón libre</div>
-        <div class="canvas-tools">
-          <button class="tool-btn on" id="tbDraw" onclick="setTool('draw')">✏️ Dibujar</button>
-          <button class="tool-btn" id="tbErase" onclick="setTool('erase')">🧹 Borrador</button>
-          <input type="range" style="width:75px" min="2" max="24" value="4" id="brushSz" step="1">
-          <div style="display:flex;gap:5px;">
-            <div class="pdot sel" style="background:#1a1a1a" onclick="setPen(this,'#1a1a1a')"></div>
-            <div class="pdot" style="background:#e24b4a" onclick="setPen(this,'#e24b4a')"></div>
-            <div class="pdot" style="background:#185fa5" onclick="setPen(this,'#185fa5')"></div>
-            <div class="pdot" style="background:#3b6d11" onclick="setPen(this,'#3b6d11')"></div>
-            <div class="pdot" style="background:#d85a30" onclick="setPen(this,'#d85a30')"></div>
-            <div class="pdot" style="background:#993556" onclick="setPen(this,'#993556')"></div>
-          </div>
-          <button class="tool-btn" onclick="clearCanvas()">🗑️ Limpiar</button>
-          <button class="tool-btn" onclick="saveCanvas()" style="background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7;">💾 Guardar dibujo</button>
-        </div>
-        <canvas id="pCanvas" width="740" height="260"></canvas>
-      </div>
-    </div>
-
-    <!-- PIZARRA VIEW -->
-    <div class="pizarra-view" id="pizarra-view">
-      <div class="piz-topbar">
-        <span style="font-size:12px;color:#aaa;font-family:'Nunito',sans-serif;">Solo lectura · sincronizado en tiempo real</span>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <button class="fullbtn" onclick="goFullscreen()">⛶ Pantalla completa</button>
-          <span class="piz-clock" id="piz-clock"></span>
-        </div>
-      </div>
-      <div class="piz-grid">
-        <div class="piz-card">
-          <div class="piz-ctitle">📅 Eventos</div>
-          <div id="piz-events"><div class="empty-h">Sin eventos aún</div></div>
-        </div>
-        <div class="piz-card">
-          <div class="piz-ctitle">📞 Contactos</div>
-          <div id="piz-contacts"><div class="empty-h">Sin contactos aún</div></div>
-        </div>
-        <div class="piz-card">
-          <div class="piz-ctitle">💬 Mensajes</div>
-          <div class="piz-msgs" id="piz-msgs"><div class="empty-h">Sin mensajes aún</div></div>
-        </div>
-        <div class="piz-card">
-          <div class="piz-ctitle">🎨 Pizarrón</div>
-          <canvas id="pizCanvas" width="340" height="200"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Firebase SDK -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, addDoc, setDoc, deleteDoc, onSnapshot, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAwUxXqPfM8-NiZxA3HpxKRu9LXLIZMoMY",
-  authDomain: "mi-pizarra-familiar.firebaseapp.com",
-  projectId: "mi-pizarra-familiar",
-  storageBucket: "mi-pizarra-familiar.firebasestorage.app",
-  messagingSenderId: "761893229587",
-  appId: "1:761893229587:web:99a24ea85dabbdcab1dbe6"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-/* ========== AUTH LOCAL + FIREBASE ANÓNIMA ========== */
-// Usuarios locales — cámbialos a tu gusto
-const USERS = { 'familia':'pizarra123', 'admin':'admin2024' };
-let loggedIn = false;
-
-window.doLogin = async function() {
-  const u = document.getElementById('l-user').value.trim();
-  const p = document.getElementById('l-pass').value;
-  const err = document.getElementById('login-err');
-  const btn = document.querySelector('.login-btn');
-
-  if (!USERS[u] || USERS[u] !== p) {
-    err.textContent = 'Usuario o contraseña incorrectos';
-    document.getElementById('l-pass').value = '';
-    return;
-  }
-
-  // Credenciales locales OK → autenticar anónimamente en Firebase
-  btn.textContent = 'Conectando...';
-  btn.disabled = true;
-  try {
-    await signInAnonymously(auth);
-    loggedIn = true;
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('main-app').style.display = 'block';
-    err.textContent = '';
-    initListeners();
-    showStatus('Conectado y autenticado ✓', 'ok');
-    setSyncDot(true);
-  } catch(e) {
-    err.textContent = 'Error de conexión con Firebase: ' + e.message;
-  } finally {
-    btn.textContent = 'Entrar';
-    btn.disabled = false;
-  }
-};
-
-window.doLogout = async function() {
-  loggedIn = false;
-  unsubAll();
-  try { await signOut(auth); } catch {}
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('main-app').style.display = 'none';
-  document.getElementById('l-user').value = '';
-  document.getElementById('l-pass').value = '';
-  stopClock();
-  setSyncDot(false);
-};
-
-/* ========== HELPERS ========== */
-function showStatus(msg, type) {
-  const el = document.getElementById('status-bar');
-  el.textContent = msg;
-  el.className = type;
-  setTimeout(() => el.className = '', 3000);
-}
-function setSyncDot(on) {
-  document.getElementById('sync-dot').className = 'sync-dot' + (on ? '' : ' off');
-}
-function fmtD(d) { if (!d) return ''; const [y,m,day] = d.split('-'); return `${day}/${m}`; }
-
-/* ========== NAV ========== */
-window.switchView = function(v) {
-  const isP = v === 'panel';
-  document.getElementById('panel-view').style.display = isP ? 'block' : 'none';
-  document.getElementById('pizarra-view').classList.toggle('visible', !isP);
-  document.getElementById('btn-ctrl').className = 'nav-btn nav-ctrl' + (isP ? ' nav-active' : '');
-  document.getElementById('btn-view').className = 'nav-btn nav-view' + (!isP ? ' nav-active' : '');
-  if (!isP) { renderPizarra(); startClock(); setTimeout(syncCanvasToPiz, 80); }
-  else stopClock();
-};
-
-window.showPTab = function(id, btn) {
-  document.querySelectorAll('.psec').forEach(s => s.classList.remove('on'));
-  document.querySelectorAll('.ptab').forEach(b => b.classList.remove('on'));
-  document.getElementById('psec-' + id).classList.add('on');
-  btn.classList.add('on');
-  if (id === 'draw') setTimeout(initCanvas, 50);
-};
-
-window.goFullscreen = function() {
-  const el = document.getElementById('pizarra-view');
-  if (el.requestFullscreen) el.requestFullscreen();
-  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-};
-
-/* ========== FIRESTORE LISTENERS ========== */
-let unsubs = [];
-let D = { ev: [], con: [], msg: [], canvas: null };
-
-function unsubAll() { unsubs.forEach(u => u()); unsubs = []; }
-
-function initListeners() {
-  // Eventos — ordenados localmente por fecha+hora ascendente
-  unsubs.push(onSnapshot(query(collection(db,'eventos'), orderBy('ts','asc')), snap => {
-    D.ev = snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .sort((a, b) => {
-        const ka = (a.f || '9999-12-31') + 'T' + (a.h || '00:00');
-        const kb = (b.f || '9999-12-31') + 'T' + (b.h || '00:00');
-        return ka.localeCompare(kb);
-      });
-    renderCalPanel();
-    renderPizEvents();
-  }, () => setSyncDot(false)));
-
-  // Contactos
-  unsubs.push(onSnapshot(query(collection(db,'contactos'), orderBy('ts','desc')), snap => {
-    D.con = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderConPanel();
-    renderPizContacts();
-  }, () => setSyncDot(false)));
-
-  // Mensajes
-  unsubs.push(onSnapshot(query(collection(db,'mensajes'), orderBy('ts','asc')), snap => {
-    D.msg = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderMsgPanel();
-    renderPizMsgs();
-  }, () => setSyncDot(false)));
-
-  // Canvas
-  unsubs.push(onSnapshot(doc(db,'canvas','dibujo'), snap => {
-    if (snap.exists()) {
-      canvasData = snap.data().data || null;
-      if (canvasData && pCtx) {
-        const img = new Image();
-        img.onload = () => { pCtx.clearRect(0,0,pCanvas.width,pCanvas.height); pCtx.drawImage(img,0,0); };
-        img.src = canvasData;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi Pizarra Familiar</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Nunito:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
-      syncCanvasToPiz();
-    }
-  }));
-}
+      body {
+        font-family: "Nunito", sans-serif;
+        background: #e8e0d4;
+        min-height: 100vh;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 16px;
+      }
+      .app {
+        width: 100%;
+        max-width: 900px;
+      }
+      #status-bar {
+        text-align: center;
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        display: none;
+      }
+      #status-bar.ok {
+        background: #bbf7d0;
+        color: #166534;
+        display: block;
+      }
+      #status-bar.err {
+        background: #fecaca;
+        color: #991b1b;
+        display: block;
+      }
+      #status-bar.info {
+        background: #bfdbfe;
+        color: #1e40af;
+        display: block;
+      }
+      /* PIN screen */
+      .pin-wrap {
+        min-height: 92vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f0ebe0;
+        border-radius: 14px;
+      }
+      .pin-box {
+        background: white;
+        border-radius: 14px;
+        border: 1.5px solid #ddd;
+        padding: 32px 28px;
+        width: 320px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+      .pin-logo {
+        font-family: "Caveat", cursive;
+        font-size: 30px;
+        font-weight: 700;
+        color: #2d2d2d;
+        margin-bottom: 6px;
+      }
+      .pin-sub {
+        font-size: 12px;
+        color: #aaa;
+        margin-bottom: 16px;
+      }
+      .pin-display {
+        font-family: "Caveat", cursive;
+        font-size: 32px;
+        letter-spacing: 10px;
+        min-height: 44px;
+        background: #f5f0e8;
+        border-radius: 8px;
+        padding: 8px 0;
+        margin-bottom: 14px;
+        color: #2d2d2d;
+      }
+      .pin-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .pin-key {
+        font-family: "Caveat", cursive;
+        font-size: 22px;
+        padding: 10px 0;
+        border: 1.5px solid #ddd;
+        border-radius: 9px;
+        background: #fafafa;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .pin-key:hover {
+        background: #f0ebe0;
+        border-color: #bbb;
+      }
+      .pin-key:active {
+        background: #2d2d2d;
+        color: white;
+      }
+      .pin-err {
+        font-size: 12px;
+        color: #e24b4a;
+        margin-top: 8px;
+        min-height: 16px;
+      }
+      .pin-switch {
+        font-size: 11px;
+        color: #888;
+        cursor: pointer;
+        text-decoration: underline;
+        margin-top: 8px;
+        display: block;
+      }
+      /* LOGIN screen */
+      .login-wrap {
+        min-height: 92vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f0ebe0;
+        border-radius: 14px;
+      }
+      .login-box {
+        background: white;
+        border-radius: 14px;
+        border: 1.5px solid #ddd;
+        padding: 36px 30px;
+        width: 380px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      }
+      .login-logo {
+        font-family: "Caveat", cursive;
+        font-size: 36px;
+        font-weight: 700;
+        color: #2d2d2d;
+        margin-bottom: 4px;
+      }
+      .login-sub {
+        font-size: 13px;
+        color: #999;
+        margin-bottom: 20px;
+      }
+      .login-families {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+      .fam-btn {
+        padding: 10px 8px;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        background: #fafafa;
+        cursor: pointer;
+        font-family: "Caveat", cursive;
+        font-size: 16px;
+        font-weight: 700;
+        color: #555;
+        transition: all 0.2s;
+        text-align: center;
+      }
+      .fam-btn:hover {
+        border-color: #aaa;
+        background: #f0ebe0;
+      }
+      .fam-btn.selected {
+        border-color: #2d2d2d;
+        background: #2d2d2d;
+        color: white;
+      }
+      .fam-emoji {
+        display: block;
+        font-size: 22px;
+        margin-bottom: 3px;
+      }
+      .login-inp {
+        width: 100%;
+        font-family: "Nunito", sans-serif;
+        font-size: 14px;
+        padding: 10px 14px;
+        border: 1.5px solid #ddd;
+        border-radius: 9px;
+        margin-bottom: 10px;
+        color: #333;
+        background: #fafafa;
+      }
+      .login-inp:focus {
+        outline: none;
+        border-color: #888;
+      }
+      .login-btn {
+        width: 100%;
+        background: #2d2d2d;
+        color: white;
+        border: none;
+        border-radius: 9px;
+        padding: 11px;
+        font-family: "Nunito", sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 4px;
+        transition: background 0.2s;
+      }
+      .login-btn:hover {
+        background: #444;
+      }
+      .login-err {
+        font-size: 12px;
+        color: #e24b4a;
+        margin-top: 10px;
+        min-height: 18px;
+      }
+      .login-pin-link {
+        font-size: 11px;
+        color: #888;
+        cursor: pointer;
+        text-decoration: underline;
+        display: block;
+        margin-top: 10px;
+      }
+      /* NAV */
+      .nav {
+        display: flex;
+        gap: 8px;
+        padding: 10px 14px;
+        background: #2d2d2d;
+        border-radius: 12px 12px 0 0;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .nav-title {
+        font-family: "Caveat", cursive;
+        font-size: 22px;
+        color: #fff;
+        font-weight: 700;
+        flex: 1;
+        min-width: 0;
+      }
+      .sync-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4ade80;
+        display: inline-block;
+        margin-right: 4px;
+      }
+      .sync-dot.off {
+        background: #f87171;
+      }
+      .nav-btn {
+        font-family: "Nunito", sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 5px 13px;
+        border-radius: 20px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .nav-ctrl {
+        background: transparent;
+        color: #ccc;
+        border: 1.5px solid #555;
+      }
+      .nav-active {
+        background: #555;
+        color: #fff;
+        border-color: #555 !important;
+      }
+      .nav-view {
+        background: #f5f0e8;
+        color: #2d2d2d;
+      }
+      .nav-logout {
+        background: transparent;
+        color: #e8a87c;
+        border: 1.5px solid #e8a87c;
+        font-size: 11px;
+        padding: 4px 10px;
+      }
+      .nav-logout:hover {
+        background: #e8a87c;
+        color: #2d2d2d;
+      }
+      .admin-banner {
+        background: #1a1a1a;
+        color: #e8a87c;
+        font-family: "Caveat", cursive;
+        font-size: 15px;
+        padding: 6px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .admin-fam-sel {
+        font-family: "Nunito", sans-serif;
+        font-size: 12px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        border: 1.5px solid #555;
+        background: #2d2d2d;
+        color: #ccc;
+        cursor: pointer;
+      }
+      .panel {
+        background: #f5f0e8;
+        padding: 14px;
+        border-radius: 0 0 12px 12px;
+      }
+      .ptabs {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+      .ptab {
+        font-family: "Caveat", cursive;
+        font-size: 17px;
+        padding: 5px 16px;
+        border: 2px solid #ccc;
+        border-radius: 20px;
+        background: white;
+        cursor: pointer;
+        color: #666;
+        transition: all 0.2s;
+      }
+      .ptab.on {
+        background: #2d2d2d;
+        color: white;
+        border-color: #2d2d2d;
+      }
+      .psec {
+        display: none;
+      }
+      .psec.on {
+        display: block;
+      }
+      .board {
+        background: white;
+        border-radius: 11px;
+        border: 1.5px solid #ddd;
+        padding: 16px;
+      }
+      .stitle {
+        font-family: "Caveat", cursive;
+        font-size: 19px;
+        font-weight: 700;
+        color: #444;
+        margin-bottom: 12px;
+        border-bottom: 2px dashed #e0d8cc;
+        padding-bottom: 6px;
+      }
+      .inp {
+        font-family: "Nunito", sans-serif;
+        font-size: 13px;
+        padding: 8px 11px;
+        border: 1.5px solid #ddd;
+        border-radius: 8px;
+        width: 100%;
+        color: #333;
+        background: #fafafa;
+        margin-bottom: 7px;
+      }
+      .inp:focus {
+        outline: none;
+        border-color: #888;
+      }
+      .row2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .row3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+      }
+      .abtn {
+        background: #2d2d2d;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 9px 16px;
+        font-family: "Nunito", sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 2px;
+        transition: background 0.2s;
+      }
+      .abtn:hover {
+        background: #444;
+      }
+      .abtn.cancel {
+        background: #999;
+      }
+      .abtn.danger {
+        background: #dc2626;
+      }
+      .ebtn {
+        background: #e8f0fe;
+        color: #185fa5;
+        border: none;
+        border-radius: 6px;
+        padding: 3px 9px;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: "Nunito", sans-serif;
+      }
+      .dbtn {
+        background: #fee2e2;
+        color: #a32d2d;
+        border: none;
+        border-radius: 6px;
+        padding: 3px 9px;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: "Nunito", sans-serif;
+      }
+      .item-list {
+        margin-top: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        max-height: 240px;
+        overflow-y: auto;
+      }
+      .p-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 8px 11px;
+        background: #f9f6f0;
+        border-radius: 8px;
+        font-size: 13px;
+        color: #444;
+      }
+      .p-item-main {
+        flex: 1;
+        line-height: 1.5;
+      }
+      .p-label {
+        font-family: "Caveat", cursive;
+        font-size: 15px;
+        font-weight: 700;
+        color: #c0703a;
+      }
+      .p-actions {
+        display: flex;
+        gap: 5px;
+        flex-shrink: 0;
+        align-items: flex-start;
+        padding-top: 2px;
+      }
+      /* Avatar */
+      .con-av {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Caveat", cursive;
+        font-size: 15px;
+        font-weight: 700;
+        flex-shrink: 0;
+        overflow: hidden;
+        border: 2px solid rgba(0, 0, 0, 0.08);
+        cursor: pointer;
+        position: relative;
+      }
+      .con-av img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .con-av-edit {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 14px;
+        height: 14px;
+        background: #2d2d2d;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        color: white;
+      }
+      /* Contactos */
+      .cat-row {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-bottom: 9px;
+      }
+      .cat-opt {
+        font-family: "Nunito", sans-serif;
+        font-size: 11px;
+        padding: 3px 10px;
+        border-radius: 12px;
+        border: 1.5px solid #ddd;
+        background: white;
+        cursor: pointer;
+        color: #666;
+        transition: all 0.2s;
+      }
+      .cat-opt.sel {
+        border-color: #2d2d2d;
+        background: #2d2d2d;
+        color: white;
+      }
+      .con-cat-badge {
+        font-family: "Nunito", sans-serif;
+        font-size: 10px;
+        padding: 1px 7px;
+        border-radius: 10px;
+        font-weight: 700;
+      }
+      .emerg-banner {
+        background: #fee2e2;
+        border: 1.5px solid #fca5a5;
+        border-radius: 8px;
+        padding: 6px 10px;
+        margin-bottom: 8px;
+      }
+      .emerg-title {
+        font-family: "Caveat", cursive;
+        font-size: 15px;
+        color: #a32d2d;
+        margin-bottom: 5px;
+      }
+      /* Mensajes */
+      .cdot {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid transparent;
+        flex-shrink: 0;
+      }
+      .cdot.sel {
+        border-color: #333;
+        transform: scale(1.15);
+      }
+      .color-row {
+        display: flex;
+        gap: 7px;
+        align-items: center;
+        margin-bottom: 9px;
+      }
+      .msg-opts-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+      }
+      .msg-opts-label {
+        font-size: 11px;
+        color: #888;
+      }
+      .msg-exp-sel {
+        font-family: "Nunito", sans-serif;
+        font-size: 12px;
+        padding: 4px 8px;
+        border: 1.5px solid #ddd;
+        border-radius: 7px;
+        background: white;
+        color: #333;
+      }
+      .msg-chip {
+        font-family: "Caveat", cursive;
+        font-size: 16px;
+        padding: 6px 11px;
+        border-radius: 7px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        max-width: 220px;
+        position: relative;
+      }
+      .msg-chip.pinned {
+        border: 2px solid #f59e0b !important;
+        box-shadow: 0 0 0 2px #fde68a;
+      }
+      .msg-chip-txt {
+        line-height: 1.3;
+      }
+      .msg-chip-meta {
+        font-family: "Nunito", sans-serif;
+        font-size: 10px;
+        opacity: 0.7;
+        line-height: 1;
+      }
+      .msg-chip-actions {
+        display: flex;
+        gap: 4px;
+        margin-top: 3px;
+        align-items: center;
+      }
+      .msg-react-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+        padding: 0 2px;
+        line-height: 1;
+      }
+      .msg-react-count {
+        font-family: "Nunito", sans-serif;
+        font-size: 10px;
+      }
+      .msg-reactions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
+        margin-top: 2px;
+      }
+      .msg-reaction-chip {
+        font-size: 11px;
+        background: rgba(0, 0, 0, 0.06);
+        border-radius: 10px;
+        padding: 1px 5px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .msg-reaction-chip:hover {
+        background: rgba(0, 0, 0, 0.12);
+      }
+      .msg-wall {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 12px;
+      }
+      .pin-icon {
+        position: absolute;
+        top: -6px;
+        right: -4px;
+        font-size: 12px;
+      }
+      /* Canvas mejorado */
+      .pdot {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid transparent;
+      }
+      .pdot.sel {
+        border-color: #333;
+        transform: scale(1.15);
+      }
+      .tool-btn {
+        font-family: "Nunito", sans-serif;
+        font-size: 11px;
+        padding: 4px 9px;
+        border: 1.5px solid #ccc;
+        border-radius: 6px;
+        cursor: pointer;
+        background: white;
+        color: #555;
+      }
+      .tool-btn.on {
+        background: #2d2d2d;
+        color: white;
+        border-color: #2d2d2d;
+      }
+      .canvas-tools {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        margin-bottom: 7px;
+        flex-wrap: wrap;
+      }
+      .canvas-toolbar2 {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        margin-bottom: 7px;
+        flex-wrap: wrap;
+      }
+      .draw-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 7px;
+      }
+      .draw-tab {
+        font-family: "Nunito", sans-serif;
+        font-size: 11px;
+        padding: 4px 10px;
+        border: 1.5px solid #ddd;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        color: #666;
+      }
+      .draw-tab.on {
+        background: #2d2d2d;
+        color: white;
+        border-color: #2d2d2d;
+      }
+      .canvas-list {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .canvas-thumb {
+        width: 52px;
+        height: 36px;
+        border-radius: 5px;
+        border: 2px solid #ddd;
+        cursor: pointer;
+        object-fit: cover;
+        background: #fafafa;
+      }
+      .canvas-thumb.active {
+        border-color: #2d2d2d;
+      }
+      .piz-draw-thumb {
+        width: 80px;
+        height: 56px;
+        border-radius: 6px;
+        border: 2px solid #ddd;
+        object-fit: cover;
+        background: #fafafa;
+      }
+      /* Modal preview dibujo pizarra */
+      #piz-draw-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.65);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+      }
+      #piz-draw-modal.open { display: flex; }
+      .piz-draw-modal-inner {
+        background: #fff;
+        border-radius: 14px;
+        padding: 22px 24px 18px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        max-width: 90vw;
+      }
+      .piz-draw-modal-title {
+        font-family: 'Caveat', cursive;
+        font-size: 22px;
+        color: #444;
+        font-weight: 700;
+      }
+      .canvas-new-btn {
+        font-size: 18px;
+        cursor: pointer;
+        background: #f5f0e8;
+        border: 1.5px dashed #bbb;
+        border-radius: 5px;
+        width: 52px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+      }
+      .canvas-new-btn:hover {
+        background: #e8e0d4;
+        color: #555;
+      }
+      #pCanvas {
+        border: 1.5px solid #ddd;
+        border-radius: 9px;
+        cursor: crosshair;
+        touch-action: none;
+        display: block;
+        background: white;
+        max-width: 100%;
+      }
+      /* Seguridad */
+      .sec-section {
+        background: #f9f6f0;
+        border-radius: 9px;
+        padding: 12px;
+        margin-bottom: 10px;
+      }
+      .sec-title {
+        font-family: "Caveat", cursive;
+        font-size: 16px;
+        font-weight: 700;
+        color: #444;
+        margin-bottom: 8px;
+      }
+      .history-item {
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        background: #f0f7ff;
+        border-left: 3px solid #5b9bd5;
+        margin-bottom: 4px;
+        color: #333;
+      }
+      .history-time {
+        font-size: 11px;
+        color: #888;
+      }
+      /* Calendario */
+      .cal-toggle {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+      .cal-toggle-btn {
+        font-family: "Nunito", sans-serif;
+        font-size: 12px;
+        padding: 4px 12px;
+        border-radius: 8px;
+        border: 1.5px solid #ddd;
+        background: white;
+        cursor: pointer;
+        color: #666;
+      }
+      .cal-toggle-btn.on {
+        background: #2d2d2d;
+        color: white;
+        border-color: #2d2d2d;
+      }
+      .cal-month-view {
+        background: #fafafa;
+        border-radius: 10px;
+        border: 1.5px solid #eee;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .cal-month-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .cal-month-title {
+        font-family: "Caveat", cursive;
+        font-size: 18px;
+        font-weight: 700;
+        color: #444;
+      }
+      .cal-nav-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 18px;
+        color: #888;
+        padding: 0 6px;
+      }
+      .cal-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+      }
+      .cal-day-name {
+        font-family: "Nunito", sans-serif;
+        font-size: 10px;
+        color: #999;
+        text-align: center;
+        font-weight: 600;
+        padding: 2px 0;
+      }
+      .cal-day {
+        font-family: "Nunito", sans-serif;
+        font-size: 11px;
+        text-align: center;
+        padding: 4px 2px;
+        border-radius: 6px;
+        cursor: pointer;
+        min-height: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1px;
+      }
+      .cal-day:hover {
+        background: #f0ebe0;
+      }
+      .cal-day.today {
+        background: #fde68a !important;
+        font-weight: 700;
+        color: #92400e;
+      }
+      .cal-day.has-event {
+        background: #fff8f0;
+      }
+      .cal-day.other-month {
+        color: #ccc;
+      }
+      .cal-day-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .cal-day.selected-day {
+        outline: 2px solid #2d2d2d;
+      }
+      .rec-row {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        margin-bottom: 7px;
+        flex-wrap: wrap;
+      }
+      .rec-label {
+        font-size: 12px;
+        color: #888;
+        white-space: nowrap;
+      }
+      .rec-sel {
+        font-family: "Nunito", sans-serif;
+        font-size: 12px;
+        padding: 5px 8px;
+        border: 1.5px solid #ddd;
+        border-radius: 7px;
+        background: white;
+        color: #333;
+      }
+      /* Comunes */
+      .edit-banner {
+        font-family: "Caveat", cursive;
+        font-size: 15px;
+        color: #c0703a;
+        margin-bottom: 7px;
+        background: #fff8f0;
+        border-radius: 7px;
+        padding: 5px 10px;
+        border-left: 3px solid #e8a87c;
+      }
+      .empty-h {
+        font-size: 12px;
+        color: #bbb;
+        font-style: italic;
+        text-align: center;
+        padding: 18px 0;
+      }
+      /* Pizarra view */
+      .pizarra-view {
+        display: none;
+        background: #f0ebe0;
+        border-radius: 0 0 12px 12px;
+        padding: 14px;
+      }
+      .pizarra-view.visible {
+        display: block;
+      }
+      .piz-topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .piz-clock {
+        font-family: "Caveat", cursive;
+        font-size: 17px;
+        color: #888;
+      }
+      .fullbtn {
+        background: #f5f0e8;
+        color: #555;
+        border: 1.5px solid #ccc;
+        border-radius: 7px;
+        font-size: 12px;
+        padding: 4px 10px;
+        cursor: pointer;
+        font-family: "Nunito", sans-serif;
+      }
+      .fullbtn:hover {
+        background: #e0dbd0;
+      }
+      .piz-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .piz-card {
+        background: white;
+        border-radius: 11px;
+        border: 2px solid #ddd;
+        padding: 13px;
+        overflow: hidden;
+      }
+      .piz-ctitle {
+        font-family: "Caveat", cursive;
+        font-size: 18px;
+        font-weight: 700;
+        color: #444;
+        border-bottom: 2px dashed #e8dfc8;
+        padding-bottom: 5px;
+        margin-bottom: 9px;
+      }
+      .piz-event {
+        display: flex;
+        align-items: baseline;
+        gap: 7px;
+        padding: 4px 8px;
+        background: #fff8f0;
+        border-radius: 6px;
+        border-left: 4px solid #e8a87c;
+        margin-bottom: 4px;
+      }
+      .piz-edate {
+        font-family: "Caveat", cursive;
+        font-size: 14px;
+        font-weight: 700;
+        color: #c0703a;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .piz-eact {
+        font-size: 12px;
+        color: #444;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .piz-contact {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        padding: 4px 8px;
+        border-radius: 6px;
+        border-left: 4px solid #5b9bd5;
+        margin-bottom: 4px;
+        background: #f0f7ff;
+      }
+      .piz-contact.emerg {
+        background: #fff0f0;
+        border-left-color: #e24b4a;
+      }
+      .piz-av {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #d0e8f8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Caveat", cursive;
+        font-size: 12px;
+        font-weight: 700;
+        color: #185fa5;
+        flex-shrink: 0;
+        overflow: hidden;
+      }
+      .piz-av.emerg {
+        background: #fecaca;
+        color: #a32d2d;
+      }
+      .piz-av img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .piz-cname {
+        font-size: 12px;
+        font-weight: 600;
+        color: #333;
+      }
+      .piz-ctel {
+        font-family: "Caveat", cursive;
+        font-size: 14px;
+        color: #185fa5;
+      }
+      .piz-msgs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-content: flex-start;
+      }
+      .piz-msg {
+        font-family: "Caveat", cursive;
+        font-size: 17px;
+        padding: 5px 10px;
+        border-radius: 6px;
+        line-height: 1.3;
+      }
+      #pizCanvas {
+        border-radius: 8px;
+        display: block;
+        max-width: 100%;
+        border: 1px solid #eee;
+      }
+      /* Modal */
+      .modal-bg {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 100;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-bg.open {
+        display: flex;
+      }
+      .modal {
+        background: white;
+        border-radius: 13px;
+        padding: 24px;
+        width: 340px;
+        max-width: 95vw;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      }
+      .modal-title {
+        font-family: "Caveat", cursive;
+        font-size: 20px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 14px;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+      }
+      /* Inactivity overlay */
+      .inact-wrap {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 200;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      .inact-wrap.open {
+        display: flex;
+      }
+      .inact-box {
+        background: white;
+        border-radius: 13px;
+        padding: 28px;
+        text-align: center;
+        width: 300px;
+      }
+      .inact-title {
+        font-family: "Caveat", cursive;
+        font-size: 22px;
+        margin-bottom: 10px;
+        color: #2d2d2d;
+      }
+      @media (max-width: 600px) {
+        .piz-grid {
+          grid-template-columns: 1fr;
+        }
+        .row2 {
+          grid-template-columns: 1fr;
+        }
+        .login-families {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div id="status-bar"></div>
 
-/* ========== EVENTOS ========== */
-let calEditId = null;
-
-window.saveEvento = async function() {
-  const f = document.getElementById('cal-fecha').value;
-  const h = document.getElementById('cal-hora').value;
-  const a = document.getElementById('cal-act').value.trim();
-  if (!a) return;
-  try {
-    if (calEditId) {
-      await setDoc(doc(db,'eventos', calEditId), { f, h, a, ts: serverTimestamp() });
-      showStatus('Evento actualizado ✓', 'ok');
-      cancelEdit('cal');
-    } else {
-      await addDoc(collection(db,'eventos'), { f, h, a, ts: serverTimestamp() });
-      showStatus('Evento agregado ✓', 'ok');
-    }
-    document.getElementById('cal-act').value = '';
-    document.getElementById('cal-fecha').value = '';
-  } catch(e) { showStatus('Error al guardar: ' + e.message, 'err'); }
-};
-
-window.editEv = function(id) {
-  const e = D.ev.find(x => x.id === id); if (!e) return;
-  calEditId = id;
-  document.getElementById('cal-fecha').value = e.f || '';
-  document.getElementById('cal-hora').value = e.h || '10:00';
-  document.getElementById('cal-act').value = e.a || '';
-  document.getElementById('cal-banner').style.display = 'block';
-  document.getElementById('cal-save-btn').textContent = '💾 Guardar';
-  document.getElementById('cal-cancel-btn').style.display = 'inline-block';
-  document.getElementById('cal-act').focus();
-};
-
-window.delEv = async function(id) {
-  if (!confirm('¿Eliminar este evento?')) return;
-  try { await deleteDoc(doc(db,'eventos', id)); showStatus('Evento eliminado', 'info'); }
-  catch(e) { showStatus('Error: ' + e.message, 'err'); }
-};
-
-window.cancelEdit = function(t) {
-  if (t === 'cal') {
-    calEditId = null;
-    document.getElementById('cal-act').value = '';
-    document.getElementById('cal-fecha').value = '';
-    document.getElementById('cal-banner').style.display = 'none';
-    document.getElementById('cal-save-btn').textContent = '+ Agregar';
-    document.getElementById('cal-cancel-btn').style.display = 'none';
-  }
-  if (t === 'con') {
-    conEditId = null;
-    document.getElementById('con-nom').value = '';
-    document.getElementById('con-tel').value = '';
-    document.getElementById('con-nota').value = '';
-    document.getElementById('con-banner').style.display = 'none';
-    document.getElementById('con-save-btn').textContent = '+ Agregar';
-    document.getElementById('con-cancel-btn').style.display = 'none';
-  }
-};
-
-function esPasado(f, h) {
-  if (!f) return false;
-  const ahora = new Date();
-  const fechaEvento = new Date((f + 'T' + (h || '23:59')));
-  return fechaEvento < ahora;
-}
-
-function renderCalPanel() {
-  if (!D.ev.length) {
-    document.getElementById('cal-list').innerHTML = '<div class="empty-h">Sin eventos</div>';
-    return;
-  }
-  const hoy = new Date().toISOString().slice(0,10);
-  document.getElementById('cal-list').innerHTML = D.ev.map(e => {
-    const pasado = esPasado(e.f, e.h);
-    const esHoy = e.f === hoy;
-    const badge = esHoy
-      ? '<span style="background:#fde68a;color:#92400e;font-size:10px;padding:1px 6px;border-radius:10px;font-family:Nunito,sans-serif;font-weight:700;">HOY</span> '
-      : pasado
-        ? '<span style="background:#f3f4f6;color:#9ca3af;font-size:10px;padding:1px 6px;border-radius:10px;font-family:Nunito,sans-serif;">pasado</span> '
-        : '';
-    return `
-      <div class="p-item" style="${pasado && !esHoy ? 'opacity:.55;' : ''}">
-        <div class="p-item-main">
-          ${badge}<span class="p-label">${fmtD(e.f)} ${e.h||''}</span> — ${e.a}
+      <!-- PIN SCREEN -->
+      <div class="pin-wrap" id="pin-screen" style="display: none">
+        <div class="pin-box">
+          <div class="pin-logo">&#128203; Mi Pizarra</div>
+          <div class="pin-sub" id="pin-sub">Ingresa tu PIN</div>
+          <div class="pin-display" id="pin-display">
+            &#183;&#183;&#183;&#183;
+          </div>
+          <div class="pin-grid">
+            <div class="pin-key" onclick="pinPress('1')">1</div>
+            <div class="pin-key" onclick="pinPress('2')">2</div>
+            <div class="pin-key" onclick="pinPress('3')">3</div>
+            <div class="pin-key" onclick="pinPress('4')">4</div>
+            <div class="pin-key" onclick="pinPress('5')">5</div>
+            <div class="pin-key" onclick="pinPress('6')">6</div>
+            <div class="pin-key" onclick="pinPress('7')">7</div>
+            <div class="pin-key" onclick="pinPress('8')">8</div>
+            <div class="pin-key" onclick="pinPress('9')">9</div>
+            <div class="pin-key" onclick="pinClear()" style="font-size: 16px">
+              &#10006;
+            </div>
+            <div class="pin-key" onclick="pinPress('0')">0</div>
+            <div class="pin-key" onclick="pinBack()" style="font-size: 16px">
+              &#9003;
+            </div>
+          </div>
+          <div class="pin-err" id="pin-err"></div>
+          <span class="pin-switch" onclick="showLoginFromPin()"
+            >Usar usuario y contrase&#241;a</span
+          >
         </div>
-        <div class="p-actions">
-          <button class="ebtn" onclick="editEv('${e.id}')">✏️ Editar</button>
-          <button class="dbtn" onclick="delEv('${e.id}')">🗑️</button>
+      </div>
+
+      <!-- LOGIN SCREEN -->
+      <div class="login-wrap" id="login-screen">
+        <div class="login-box">
+          <div class="login-logo">&#128203; Mi Pizarra</div>
+          <div class="login-sub">Selecciona tu familia y accede</div>
+          <div class="login-families">
+            <div class="fam-btn" onclick="selFam('ojeda-alvarado', this)">
+              <span class="fam-emoji">&#127968;</span>Ojeda Alvarado
+            </div>
+            <div class="fam-btn" onclick="selFam('barrientos-ojeda', this)">
+              <span class="fam-emoji">&#127807;</span>Barrientos Ojeda
+            </div>
+            <div class="fam-btn" onclick="selFam('saldivia-ojeda', this)">
+              <span class="fam-emoji">&#11088;</span>Saldivia Ojeda
+            </div>
+            <div class="fam-btn" onclick="selFam('ojeda-rojas', this)">
+              <span class="fam-emoji">&#127803;</span>Ojeda Rojas
+            </div>
+          </div>
+          <input
+            class="login-inp"
+            type="text"
+            id="l-user"
+            placeholder="Usuario"
+            autocomplete="off"
+            style="display:none;"
+          />
+          <div id="l-user-badge" style="display:none;align-items:center;gap:8px;background:#f5f0e8;border:1.5px solid #ddd;border-radius:10px;padding:10px 14px;width:100%;box-sizing:border-box;font-family:'Nunito',sans-serif;font-size:14px;color:#555;">
+            <span style="font-size:17px;">&#128100;</span>
+            <span id="l-user-badge-text" style="flex:1;"></span>
+            <span onclick="resetLoginUser()" style="cursor:pointer;font-size:16px;color:#bbb;" title="Cambiar">&#10005;</span>
+          </div>
+          <input
+            class="login-inp"
+            type="password"
+            id="l-pass"
+            placeholder="Contrase&#241;a"
+            onkeydown="if (event.key === 'Enter') doLogin();"
+          />
+          <button class="login-btn" onclick="doLogin()">Entrar</button>
+          <div class="login-err" id="login-err"></div>
+          <span
+            class="login-pin-link"
+            id="pin-link"
+            style="display: none"
+            onclick="tryShowPin()"
+            >Acceso r&#225;pido con PIN &#128274;</span
+          >
+          <span
+            class="login-pin-link"
+            id="admin-link"
+            onclick="selAdmin()"
+            style="color:#aaa;font-size:12px;margin-top:2px;"
+            >Acceso administrador &#9881;&#65039;</span
+          >
         </div>
-      </div>`;
-  }).join('');
-}
+      </div>
 
-/* ========== CONTACTOS ========== */
-let conEditId = null;
-
-window.saveContacto = async function() {
-  const n = document.getElementById('con-nom').value.trim();
-  const t = document.getElementById('con-tel').value.trim();
-  if (!n && !t) return;
-  const nota = document.getElementById('con-nota').value.trim();
-  try {
-    if (conEditId) {
-      await setDoc(doc(db,'contactos', conEditId), { n, t, nota, ts: serverTimestamp() });
-      showStatus('Contacto actualizado ✓', 'ok');
-      cancelEdit('con');
-    } else {
-      await addDoc(collection(db,'contactos'), { n, t, nota, ts: serverTimestamp() });
-      showStatus('Contacto agregado ✓', 'ok');
-    }
-    document.getElementById('con-nom').value = '';
-    document.getElementById('con-tel').value = '';
-    document.getElementById('con-nota').value = '';
-  } catch(e) { showStatus('Error: ' + e.message, 'err'); }
-};
-
-window.editCon = function(id) {
-  const c = D.con.find(x => x.id === id); if (!c) return;
-  conEditId = id;
-  document.getElementById('con-nom').value = c.n || '';
-  document.getElementById('con-tel').value = c.t || '';
-  document.getElementById('con-nota').value = c.nota || '';
-  document.getElementById('con-banner').style.display = 'block';
-  document.getElementById('con-save-btn').textContent = '💾 Guardar';
-  document.getElementById('con-cancel-btn').style.display = 'inline-block';
-  document.getElementById('con-nom').focus();
-};
-
-window.delCon = async function(id) {
-  if (!confirm('¿Eliminar este contacto?')) return;
-  try { await deleteDoc(doc(db,'contactos', id)); showStatus('Contacto eliminado', 'info'); }
-  catch(e) { showStatus('Error: ' + e.message, 'err'); }
-};
-
-function renderConPanel() {
-  document.getElementById('con-list').innerHTML = D.con.length
-    ? D.con.map(c => `
-      <div class="p-item">
-        <div class="p-item-main">
-          <span class="p-label">${c.n}</span> · ${c.t}
-          ${c.nota ? `<br><span style="font-size:11px;color:#999">${c.nota}</span>` : ''}
+      <!-- INACTIVITY OVERLAY -->
+      <div class="inact-wrap" id="inact-overlay">
+        <div class="inact-box">
+          <div class="inact-title">&#128274; Sesi&#243;n bloqueada</div>
+          <p style="font-size: 13px; color: #666; margin-bottom: 16px">
+            La aplicaci&#243;n se bloque&#243; por inactividad.
+          </p>
+          <button class="abtn" onclick="unlockSession()">Desbloquear</button>
         </div>
-        <div class="p-actions">
-          <button class="ebtn" onclick="editCon('${c.id}')">✏️ Editar</button>
-          <button class="dbtn" onclick="delCon('${c.id}')">🗑️</button>
+      </div>
+
+      <!-- MAIN APP -->
+      <div id="main-app" style="display: none">
+        <div class="nav">
+          <span class="nav-title"
+            ><span class="sync-dot" id="sync-dot"></span>&#128203;
+            <span id="nav-fam-name">Pizarra Familiar</span></span
+          >
+          <button
+            class="nav-btn nav-ctrl nav-active"
+            id="btn-ctrl"
+            onclick="switchView('panel')"
+          >
+            &#9881; Panel
+          </button>
+          <button
+            class="nav-btn nav-view"
+            id="btn-view"
+            onclick="switchView('pizarra')"
+          >
+            &#128065; Pizarra
+          </button>
+          <button class="nav-btn nav-logout" onclick="doLogout()">Salir</button>
         </div>
-      </div>`).join('')
-    : '<div class="empty-h">Sin contactos</div>';
-}
+        <div id="admin-bar" style="display: none" class="admin-banner">
+          <span>&#128081; Admin &mdash; viendo:</span>
+          <select
+            class="admin-fam-sel"
+            id="admin-fam-sel"
+            onchange="adminChangeFam(this.value)"
+          >
+            <option value="ojeda-alvarado">&#127968; Ojeda Alvarado</option>
+            <option value="barrientos-ojeda">&#127807; Barrientos Ojeda</option>
+            <option value="saldivia-ojeda">&#11088; Saldivia Ojeda</option>
+            <option value="ojeda-rojas">&#127803; Ojeda Rojas</option>
+          </select>
+        </div>
+        <div class="panel" id="panel-view">
+          <div class="ptabs">
+            <button class="ptab on" onclick="showPTab('cal', this)">
+              &#128197; Calendario
+            </button>
+            <button class="ptab" onclick="showPTab('con', this)">
+              &#128222; Contactos
+            </button>
+            <button class="ptab" onclick="showPTab('msg', this)">
+              &#128172; Mensajes
+            </button>
+            <button class="ptab" onclick="showPTab('draw', this)">
+              &#127912; Dibujo
+            </button>
+            <button class="ptab" onclick="showPTab('sec', this)">
+              &#128274; Seguridad
+            </button>
+          </div>
 
-/* ========== MENSAJES ========== */
-let mBg = '#fde68a', mFg = '#92400e';
+          <!-- CALENDARIO -->
+          <div class="psec on board" id="psec-cal">
+            <div class="stitle">&#128197; Calendario y eventos</div>
+            <div class="cal-toggle">
+              <button
+                class="cal-toggle-btn on"
+                id="cal-btn-lista"
+                onclick="setCalView('lista')"
+              >
+                &#128203; Lista
+              </button>
+              <button
+                class="cal-toggle-btn"
+                id="cal-btn-mes"
+                onclick="setCalView('mes')"
+              >
+                &#128198; Mes
+              </button>
+            </div>
+            <div
+              id="cal-month-view"
+              class="cal-month-view"
+              style="display: none"
+            >
+              <div class="cal-month-header">
+                <button class="cal-nav-btn" onclick="changeMonth(-1)">
+                  &#9664;
+                </button>
+                <span class="cal-month-title" id="cal-month-title"></span>
+                <button class="cal-nav-btn" onclick="changeMonth(1)">
+                  &#9654;
+                </button>
+              </div>
+              <div class="cal-grid" id="cal-grid"></div>
+            </div>
+            <div class="edit-banner" id="cal-banner" style="display: none">
+              &#9999; Editando evento
+            </div>
+            <div class="cat-row" id="cal-cat-row">
+              <span style="font-size: 11px; color: #888">Categor&#237;a:</span>
+              <div
+                class="cat-opt sel"
+                onclick="selCalCat(this, 'general')"
+                data-cat="general"
+              >
+                &#128204; General
+              </div>
+              <div
+                class="cat-opt"
+                onclick="selCalCat(this, 'medico')"
+                data-cat="medico"
+              >
+                &#127973; M&#233;dico
+              </div>
+              <div
+                class="cat-opt"
+                onclick="selCalCat(this, 'colegio')"
+                data-cat="colegio"
+              >
+                &#127890; Colegio
+              </div>
+              <div
+                class="cat-opt"
+                onclick="selCalCat(this, 'trabajo')"
+                data-cat="trabajo"
+              >
+                &#128188; Trabajo
+              </div>
+              <div
+                class="cat-opt"
+                onclick="selCalCat(this, 'cumple')"
+                data-cat="cumple"
+              >
+                &#127874; Cumplea&#241;os
+              </div>
+            </div>
+            <div class="row2">
+              <input class="inp" type="date" id="cal-fecha" /><input
+                class="inp"
+                type="time"
+                id="cal-hora"
+                value="10:00"
+              />
+            </div>
+            <input
+              class="inp"
+              type="text"
+              id="cal-act"
+              placeholder="Actividad (ej: Cita con el m&#233;dico)"
+            />
+            <div class="rec-row">
+              <span class="rec-label">&#9200; Recordatorio:</span>
+              <select class="rec-sel" id="cal-rec">
+                <option value="">Sin recordatorio</option>
+                <option value="15">15 min antes</option>
+                <option value="30">30 min antes</option>
+                <option value="60">1 hora antes</option>
+                <option value="1440">1 d&#237;a antes</option>
+              </select>
+              <select class="rec-sel" id="cal-recurrente">
+                <option value="">Sin repetici&#243;n</option>
+                <option value="semanal">Semanal</option>
+                <option value="mensual">Mensual</option>
+              </select>
+            </div>
+            <div style="display: flex; gap: 7px">
+              <button class="abtn" id="cal-save-btn" onclick="saveEvento()">
+                + Agregar
+              </button>
+              <button
+                class="abtn cancel"
+                id="cal-cancel-btn"
+                onclick="cancelEdit('cal')"
+                style="display: none; width: auto; padding: 9px 14px"
+              >
+                &#10005;
+              </button>
+            </div>
+            <div class="item-list" id="cal-list"></div>
+          </div>
 
-window.selMC = function(el, bg, fg) {
-  document.querySelectorAll('.cdot').forEach(d => d.classList.remove('sel'));
-  el.classList.add('sel'); mBg = bg; mFg = fg;
-};
+          <!-- CONTACTOS -->
+          <div class="psec board" id="psec-con">
+            <div class="stitle">&#128222; N&#250;meros y contactos</div>
+            <div class="edit-banner" id="con-banner" style="display: none">
+              &#9999; Editando contacto
+            </div>
+            <div class="cat-row" id="con-cat-row">
+              <span style="font-size: 11px; color: #888">Tipo:</span>
+              <div
+                class="cat-opt sel"
+                onclick="selConCat(this, 'personal')"
+                data-cat="personal"
+              >
+                &#128100; Personal
+              </div>
+              <div
+                class="cat-opt"
+                onclick="selConCat(this, 'medico')"
+                data-cat="medico"
+              >
+                &#127973; M&#233;dico
+              </div>
+              <div
+                class="cat-opt"
+                onclick="selConCat(this, 'colegio')"
+                data-cat="colegio"
+              >
+                &#127890; Colegio
+              </div>
+              <div
+                class="cat-opt"
+                onclick="selConCat(this, 'trabajo')"
+                data-cat="trabajo"
+              >
+                &#128188; Trabajo
+              </div>
+              <div
+                class="cat-opt"
+                onclick="selConCat(this, 'emergencia')"
+                data-cat="emergencia"
+              >
+                &#128680; Emergencia
+              </div>
+            </div>
+            <div class="row2">
+              <input
+                class="inp"
+                type="text"
+                id="con-nom"
+                placeholder="Nombre"
+              /><input
+                class="inp"
+                type="tel"
+                id="con-tel"
+                placeholder="Tel&#233;fono"
+              />
+            </div>
+            <input
+              class="inp"
+              type="text"
+              id="con-nota"
+              placeholder="Nota opcional"
+            />
+            <div style="margin-bottom: 9px">
+              <label
+                style="
+                  font-size: 11px;
+                  color: #888;
+                  display: block;
+                  margin-bottom: 4px;
+                "
+                >Foto (URL o seleccionar):</label
+              >
+              <div style="display: flex; gap: 7px; align-items: center">
+                <input
+                  class="inp"
+                  type="url"
+                  id="con-foto-url"
+                  placeholder="https://..."
+                  style="margin: 0; flex: 1"
+                />
+                <input
+                  type="file"
+                  id="con-foto-file"
+                  accept="image/*"
+                  style="display: none"
+                  onchange="loadConFoto(this)"
+                />
+                <button
+                  class="tool-btn"
+                  onclick="document.getElementById('con-foto-file').click()"
+                >
+                  &#128247; Subir
+                </button>
+              </div>
+              <div id="con-foto-preview" style="display: none; margin-top: 6px">
+                <img
+                  id="con-foto-img"
+                  style="
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    border: 2px solid #ddd;
+                  "
+                  src=""
+                />
+              </div>
+            </div>
+            <div style="display: flex; gap: 7px">
+              <button class="abtn" id="con-save-btn" onclick="saveContacto()">
+                + Agregar
+              </button>
+              <button
+                class="abtn cancel"
+                id="con-cancel-btn"
+                onclick="cancelEdit('con')"
+                style="display: none; width: auto; padding: 9px 14px"
+              >
+                &#10005;
+              </button>
+            </div>
+            <div class="item-list" id="con-list"></div>
+          </div>
 
-window.addMsg = async function() {
-  const t = document.getElementById('msg-txt').value.trim(); if (!t) return;
-  try {
-    await addDoc(collection(db,'mensajes'), { t, bg: mBg, fg: mFg, ts: serverTimestamp() });
-    document.getElementById('msg-txt').value = '';
-    showStatus('Mensaje agregado ✓', 'ok');
-  } catch(e) { showStatus('Error: ' + e.message, 'err'); }
-};
+          <!-- MENSAJES -->
+          <div class="psec board" id="psec-msg">
+            <div class="stitle">&#128172; Mensajes y notas</div>
+            <div class="color-row">
+              <span style="font-size: 12px; color: #888">Color:</span>
+              <div
+                class="cdot sel"
+                style="background: #fde68a"
+                onclick="selMC(this, '#fde68a', '#92400e')"
+              ></div>
+              <div
+                class="cdot"
+                style="background: #fbcfe8"
+                onclick="selMC(this, '#fbcfe8', '#9d174d')"
+              ></div>
+              <div
+                class="cdot"
+                style="background: #bbf7d0"
+                onclick="selMC(this, '#bbf7d0', '#166534')"
+              ></div>
+              <div
+                class="cdot"
+                style="background: #bfdbfe"
+                onclick="selMC(this, '#bfdbfe', '#1e40af')"
+              ></div>
+              <div
+                class="cdot"
+                style="background: #fecaca"
+                onclick="selMC(this, '#fecaca', '#991b1b')"
+              ></div>
+            </div>
+            <div class="msg-opts-row">
+              <span class="msg-opts-label">&#128338; Expira:</span>
+              <select class="msg-exp-sel" id="msg-exp">
+                <option value="">Nunca</option>
+                <option value="3600000">1 hora</option>
+                <option value="86400000">1 d&#237;a</option>
+                <option value="259200000">3 d&#237;as</option>
+                <option value="604800000">1 semana</option>
+              </select>
+              <label
+                style="
+                  font-size: 11px;
+                  color: #888;
+                  display: flex;
+                  align-items: center;
+                  gap: 4px;
+                  cursor: pointer;
+                "
+                ><input type="checkbox" id="msg-pin" /> &#128204; Fijar</label
+              >
+            </div>
+            <div style="display: flex; gap: 7px">
+              <input
+                class="inp"
+                style="margin: 0; flex: 1"
+                id="msg-txt"
+                placeholder="Escribe un mensaje..."
+                onkeydown="if (event.key === 'Enter') addMsg();"
+              />
+              <button
+                class="abtn"
+                style="width: auto; margin: 0; padding: 9px 16px"
+                onclick="addMsg()"
+              >
+                +
+              </button>
+            </div>
+            <div class="msg-wall" id="msg-wall"></div>
+          </div>
 
-window.delMsg = async function(id) {
-  if (!confirm('¿Eliminar este mensaje?')) return;
-  try { await deleteDoc(doc(db,'mensajes', id)); showStatus('Mensaje eliminado', 'info'); }
-  catch(e) { showStatus('Error: ' + e.message, 'err'); }
-};
+          <!-- DIBUJO MEJORADO -->
+          <div class="psec board" id="psec-draw">
+            <div class="stitle">&#127912; Pizarr&#243;n libre</div>
+            <div class="draw-tabs">
+              <button
+                class="draw-tab on"
+                id="dtab-draw"
+                onclick="setDrawTab('draw')"
+              >
+                &#9997; Dibujar
+              </button>
+              <button
+                class="draw-tab"
+                id="dtab-text"
+                onclick="setDrawTab('text')"
+              >
+                &#128200; Texto
+              </button>
+              <button
+                class="draw-tab"
+                id="dtab-shapes"
+                onclick="setDrawTab('shapes')"
+              >
+                &#9650; Figuras
+              </button>
+              <button
+                class="draw-tab"
+                id="dtab-saved"
+                onclick="setDrawTab('saved')"
+              >
+                &#128190; Guardados
+              </button>
+            </div>
+            <!-- Draw tools -->
+            <div id="draw-panel-draw">
+              <div class="canvas-tools">
+                <button
+                  class="tool-btn on"
+                  id="tbDraw"
+                  onclick="setTool('draw')"
+                >
+                  &#9997; Dibujar
+                </button>
+                <button
+                  class="tool-btn"
+                  id="tbErase"
+                  onclick="setTool('erase')"
+                >
+                  &#129529; Borrador
+                </button>
+                <input
+                  type="range"
+                  style="width: 75px"
+                  min="2"
+                  max="24"
+                  value="4"
+                  id="brushSz"
+                  step="1"
+                />
+                <div style="display: flex; gap: 5px">
+                  <div
+                    class="pdot sel"
+                    style="background: #1a1a1a"
+                    onclick="setPen(this, '#1a1a1a')"
+                  ></div>
+                  <div
+                    class="pdot"
+                    style="background: #e24b4a"
+                    onclick="setPen(this, '#e24b4a')"
+                  ></div>
+                  <div
+                    class="pdot"
+                    style="background: #185fa5"
+                    onclick="setPen(this, '#185fa5')"
+                  ></div>
+                  <div
+                    class="pdot"
+                    style="background: #3b6d11"
+                    onclick="setPen(this, '#3b6d11')"
+                  ></div>
+                  <div
+                    class="pdot"
+                    style="background: #d85a30"
+                    onclick="setPen(this, '#d85a30')"
+                  ></div>
+                  <div
+                    class="pdot"
+                    style="background: #993556"
+                    onclick="setPen(this, '#993556')"
+                  ></div>
+                </div>
+              </div>
+              <div class="canvas-tools">
+                <button class="tool-btn" onclick="undoCanvas()">
+                  &#8617; Deshacer
+                </button>
+                <button class="tool-btn" onclick="redoCanvas()">
+                  &#8618; Rehacer
+                </button>
+                <button class="tool-btn" onclick="clearCanvas()">
+                  &#128465; Limpiar
+                </button>
+                <button
+                  class="tool-btn"
+                  onclick="saveCurrentCanvas()"
+                  style="
+                    background: #e8f5e9;
+                    color: #2e7d32;
+                    border-color: #a5d6a7;
+                  "
+                >
+                  &#128190; Guardar
+                </button>
+                <button
+                  class="tool-btn"
+                  onclick="newDrawing()"
+                  style="
+                    background: #e8f0fe;
+                    color: #185fa5;
+                    border-color: #93c5fd;
+                  "
+                >
+                  + Nuevo
+                </button>
+              </div>
+            </div>
+            <!-- Text tools -->
+            <div id="draw-panel-text" style="display: none">
+              <div class="canvas-tools">
+                <input
+                  class="inp"
+                  type="text"
+                  id="canvas-text-input"
+                  placeholder="Texto a escribir..."
+                  style="flex: 1; margin: 0"
+                />
+                <input
+                  type="range"
+                  style="width: 70px"
+                  min="12"
+                  max="48"
+                  value="20"
+                  id="textSz"
+                  step="2"
+                />
+                <div style="display: flex; gap: 5px">
+                  <div
+                    class="pdot sel"
+                    style="background: #1a1a1a"
+                    onclick="setTextCol(this, '#1a1a1a')"
+                  ></div>
+                  <div
+                    class="pdot"
+                    style="background: #e24b4a"
+                    onclick="setTextCol(this, '#e24b4a')"
+                  ></div>
+                  <div
+                    class="pdot"
+                    style="background: #185fa5"
+                    onclick="setTextCol(this, '#185fa5')"
+                  ></div>
+                  <div
+                    class="pdot"
+                    style="background: #3b6d11"
+                    onclick="setTextCol(this, '#3b6d11')"
+                  ></div>
+                </div>
+              </div>
+              <p style="font-size: 11px; color: #888; margin-bottom: 6px">
+                Haz clic en el canvas para colocar el texto.
+              </p>
+            </div>
+            <!-- Shape tools -->
+            <div id="draw-panel-shapes" style="display: none">
+              <div class="canvas-tools">
+                <button
+                  class="tool-btn on"
+                  id="tbRect"
+                  onclick="setShape('rect')"
+                >
+                  &#9645; Rect&#225;ngulo
+                </button>
+                <button class="tool-btn" id="tbCirc" onclick="setShape('circ')">
+                  &#9711; C&#237;rculo
+                </button>
+                <button class="tool-btn" id="tbLine" onclick="setShape('line')">
+                  &#8725; L&#237;nea
+                </button>
+                <div style="display: flex; gap: 5px">
+                  <div
+                    class="pdot sel"
+                    style="background: #1a1a1a"
+                    onclick="setShapeCol(this, '#1a1a1a')"
+                  ></div>
+                  <div
+                    class="pdot"
+                    style="background: #e24b4a"
+                    onclick="setShapeCol(this, '#e24b4a')"
+                  ></div>
+                  <div
+                    class="pdot"
+                    style="background: #185fa5"
+                    onclick="setShapeCol(this, '#185fa5')"
+                  ></div>
+                  <div
+                    class="pdot"
+                    style="background: #3b6d11"
+                    onclick="setShapeCol(this, '#3b6d11')"
+                  ></div>
+                </div>
+                <input
+                  type="range"
+                  style="width: 70px"
+                  min="1"
+                  max="10"
+                  value="2"
+                  id="shapeSz"
+                  step="1"
+                />
+                <label
+                  style="
+                    font-size: 11px;
+                    color: #888;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                  "
+                  ><input type="checkbox" id="shapeFill" /> Relleno</label
+                >
+              </div>
+              <p style="font-size: 11px; color: #888; margin-bottom: 6px">
+                Arrastra para dibujar la figura.
+              </p>
+            </div>
+            <!-- Saved drawings -->
+            <div id="draw-panel-saved" style="display: none">
+              <p style="font-size: 12px; color: #888; margin-bottom: 8px">
+                Dibujos guardados (click para cargar):
+              </p>
+              <div class="canvas-list" id="canvas-list"></div>
+              <p style="font-size: 11px; color: #bbb; margin-top: 6px">
+                Cada dibujo se guarda con su propio nombre en Firestore.
+              </p>
+            </div>
+            <canvas id="pCanvas" width="740" height="280"></canvas>
+          </div>
 
-function renderMsgPanel() {
-  document.getElementById('msg-wall').innerHTML = D.msg.length
-    ? D.msg.map(m => `
-      <div class="msg-chip" style="background:${m.bg};color:${m.fg}">
-        ${m.t}
-        <button onclick="delMsg('${m.id}')" style="background:none;border:none;cursor:pointer;color:${m.fg};opacity:.6;font-size:13px;padding:0 2px;">✕</button>
-      </div>`).join('')
-    : '<div class="empty-h">Sin mensajes</div>';
-}
+          <!-- SEGURIDAD -->
+          <div class="psec board" id="psec-sec">
+            <div class="stitle">&#128274; Seguridad</div>
+            <!-- Cambio de contrase&#241;a -->
+            <div class="sec-section">
+              <div class="sec-title">&#128273; Cambiar contrase&#241;a</div>
+              <input
+                class="inp"
+                type="password"
+                id="sec-pass-old"
+                placeholder="Contrase&#241;a actual"
+              />
+              <input
+                class="inp"
+                type="password"
+                id="sec-pass-new"
+                placeholder="Nueva contrase&#241;a"
+              />
+              <input
+                class="inp"
+                type="password"
+                id="sec-pass-new2"
+                placeholder="Repetir nueva contrase&#241;a"
+              />
+              <button class="abtn" onclick="changePassword()">
+                Cambiar contrase&#241;a
+              </button>
+            </div>
+            <!-- PIN r&#225;pido -->
+            <div class="sec-section">
+              <div class="sec-title">
+                &#128272; PIN r&#225;pido (4 d&#237;gitos)
+              </div>
+              <p style="font-size: 12px; color: #888; margin-bottom: 8px">
+                Configura un PIN para acceder r&#225;pidamente desde m&#243;vil.
+              </p>
+              <input
+                class="inp"
+                type="password"
+                id="sec-pin-new"
+                placeholder="PIN (4 d&#237;gitos)"
+                maxlength="4"
+                inputmode="numeric"
+              />
+              <input
+                class="inp"
+                type="password"
+                id="sec-pin-new2"
+                placeholder="Repetir PIN"
+                maxlength="4"
+                inputmode="numeric"
+              />
+              <div style="display: flex; gap: 7px">
+                <button class="abtn" onclick="savePIN()">Guardar PIN</button>
+                <button
+                  class="abtn cancel"
+                  style="width: auto"
+                  onclick="clearPIN()"
+                >
+                  Borrar PIN
+                </button>
+              </div>
+              <p
+                id="sec-pin-status"
+                style="font-size: 12px; margin-top: 6px; color: #888"
+              ></p>
+            </div>
+            <!-- Auto-logout -->
+            <div class="sec-section">
+              <div class="sec-title">
+                &#9201; Cierre autom&#225;tico por inactividad
+              </div>
+              <div
+                style="
+                  display: flex;
+                  gap: 8px;
+                  align-items: center;
+                  flex-wrap: wrap;
+                "
+              >
+                <select class="rec-sel" id="sec-timeout">
+                  <option value="0">Desactivado</option>
+                  <option value="5">5 minutos</option>
+                  <option value="10" selected>10 minutos</option>
+                  <option value="20">20 minutos</option>
+                  <option value="30">30 minutos</option>
+                </select>
+                <button class="tool-btn on" onclick="saveTimeout()">
+                  Guardar
+                </button>
+              </div>
+            </div>
+            <!-- Historial de accesos -->
+            <div class="sec-section">
+              <div class="sec-title">&#128203; Historial de accesos</div>
+              <div
+                id="access-history"
+                style="max-height: 160px; overflow-y: auto"
+              ></div>
+            </div>
+          </div>
+        </div>
 
-/* ========== CANVAS ========== */
-let pCanvas, pCtx, canvasData = null;
-let isDrawing = false, lx = 0, ly = 0;
-let drawTool = 'draw', penCol = '#1a1a1a';
+        <div class="pizarra-view" id="pizarra-view">
+          <div class="piz-topbar">
+            <span
+              style="
+                font-size: 12px;
+                color: #aaa;
+                font-family: &quot;Nunito&quot;, sans-serif;
+              "
+              id="piz-fam-label"
+              >Solo lectura - tiempo real</span
+            >
+            <div style="display: flex; gap: 8px; align-items: center">
+              <button class="fullbtn" onclick="goFullscreen()">
+                Pantalla completa
+              </button>
+              <span class="piz-clock" id="piz-clock"></span>
+            </div>
+          </div>
+          <div class="piz-grid">
+            <div class="piz-card">
+              <div class="piz-ctitle">&#128197; Eventos</div>
+              <div id="piz-events"><div class="empty-h">Sin eventos</div></div>
+            </div>
+            <div class="piz-card">
+              <div class="piz-ctitle">&#128222; Contactos</div>
+              <div id="piz-contacts">
+                <div class="empty-h">Sin contactos</div>
+              </div>
+            </div>
+            <div class="piz-card">
+              <div class="piz-ctitle">&#128172; Mensajes</div>
+              <div class="piz-msgs" id="piz-msgs">
+                <div class="empty-h">Sin mensajes</div>
+              </div>
+            </div>
+            <div class="piz-card">
+              <div class="piz-ctitle">&#127912; Pizarr&#243;n</div>
+              <div id="piz-drawings" style="display:flex;flex-wrap:wrap;gap:10px;padding:6px 2px;"><div class="empty-h">Sin dibujos</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-window.initCanvas = function() {
-  if (pCtx) return;
-  pCanvas = document.getElementById('pCanvas');
-  pCtx = pCanvas.getContext('2d');
-  pCtx.lineCap = 'round'; pCtx.lineJoin = 'round';
-  if (canvasData) { const img = new Image(); img.onload = () => pCtx.drawImage(img,0,0); img.src = canvasData; }
+      <!-- MODAL REACCIONES -->
+      <!-- MODAL PREVIEW DIBUJO -->
+      <div class="modal-bg" id="piz-draw-modal" onclick="closePizDrawModal(event)">
+        <div class="piz-draw-modal-inner">
+          <div class="piz-draw-modal-title" id="piz-draw-modal-name"></div>
+          <img id="piz-draw-modal-img" src="" alt="" style="max-width:100%;max-height:70vh;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,.18);display:block;">
+          <button class="abtn cancel" style="margin-top:14px;" onclick="closePizDrawModal()">Cerrar</button>
+        </div>
+      </div>
 
-  function gp(e) {
-    const r = pCanvas.getBoundingClientRect(), sx = pCanvas.width/r.width, sy = pCanvas.height/r.height;
-    return e.touches ? [(e.touches[0].clientX-r.left)*sx,(e.touches[0].clientY-r.top)*sy] : [(e.clientX-r.left)*sx,(e.clientY-r.top)*sy];
-  }
-  function draw(e) {
-    if (!isDrawing) return;
-    const [x,y] = gp(e), sz = +document.getElementById('brushSz').value;
-    pCtx.beginPath(); pCtx.moveTo(lx,ly); pCtx.lineTo(x,y);
-    pCtx.strokeStyle = drawTool === 'erase' ? '#fff' : penCol;
-    pCtx.lineWidth = drawTool === 'erase' ? sz*4 : sz;
-    pCtx.stroke(); [lx,ly] = [x,y];
-    canvasData = pCanvas.toDataURL();
-  }
-  pCanvas.addEventListener('mousedown', e => { isDrawing=true; [lx,ly]=gp(e); });
-  pCanvas.addEventListener('mousemove', draw);
-  pCanvas.addEventListener('mouseup', () => isDrawing=false);
-  pCanvas.addEventListener('mouseleave', () => isDrawing=false);
-  pCanvas.addEventListener('touchstart', e => { e.preventDefault(); isDrawing=true; [lx,ly]=gp(e); }, {passive:false});
-  pCanvas.addEventListener('touchmove', e => { e.preventDefault(); draw(e); }, {passive:false});
-  pCanvas.addEventListener('touchend', () => isDrawing=false);
-};
+      <div class="modal-bg" id="react-modal">
+        <div class="modal">
+          <div class="modal-title">Reaccionar al mensaje</div>
+          <div
+            style="
+              display: flex;
+              flex-wrap: wrap;
+              gap: 10px;
+              justify-content: center;
+            "
+            id="react-emoji-grid"
+          ></div>
+          <div class="modal-actions">
+            <button class="abtn cancel" onclick="closeReactModal()">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-window.setTool = function(t) {
-  drawTool = t;
-  document.getElementById('tbDraw').classList.toggle('on', t==='draw');
-  document.getElementById('tbErase').classList.toggle('on', t==='erase');
-};
-window.setPen = function(el, c) {
-  penCol = c;
-  document.querySelectorAll('.pdot').forEach(d => d.classList.remove('sel'));
-  el.classList.add('sel'); setTool('draw');
-};
-window.clearCanvas = function() {
-  if (!pCtx) return;
-  pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
-  canvasData = null;
-};
-window.saveCanvas = async function() {
-  if (!canvasData) { showStatus('Dibuja algo primero', 'info'); return; }
-  try {
-    await setDoc(doc(db,'canvas','dibujo'), { data: canvasData, ts: serverTimestamp() });
-    showStatus('Dibujo guardado en la nube ✓', 'ok');
-  } catch(e) { showStatus('Error guardando dibujo: ' + e.message, 'err'); }
-};
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        doc,
+        addDoc,
+        setDoc,
+        deleteDoc,
+        onSnapshot,
+        orderBy,
+        query,
+        serverTimestamp,
+        getDoc,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import {
+        getAuth,
+        signInAnonymously,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-/* ========== PIZARRA RENDER ========== */
-function renderPizEvents() {
-  const hoy = new Date().toISOString().slice(0,10);
-  // Mostrar primero los próximos, luego los pasados si no hay suficientes
-  const proximos = D.ev.filter(e => !esPasado(e.f, e.h) || e.f === hoy);
-  const pasados  = D.ev.filter(e => esPasado(e.f, e.h) && e.f !== hoy);
-  const lista = [...proximos, ...pasados].slice(0, 7);
-  document.getElementById('piz-events').innerHTML = lista.length
-    ? lista.map(e => {
-        const esHoy = e.f === hoy;
-        const pasado = esPasado(e.f, e.h) && !esHoy;
-        return `<div class="piz-event" style="${pasado ? 'opacity:.5;' : ''}${esHoy ? 'border-left-color:#f59e0b;background:#fffbeb;' : ''}">
-          <span class="piz-edate">${esHoy ? '⭐ HOY' : fmtD(e.f)} ${e.h||''}</span>
-          <span class="piz-eact">${e.a}</span>
-        </div>`;
-      }).join('')
-    : '<div class="empty-h">Sin eventos aún</div>';
-}
-function renderPizContacts() {
-  document.getElementById('piz-contacts').innerHTML = D.con.length
-    ? D.con.slice(0,5).map(c => {
-        const ini = c.n ? c.n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) : '?';
-        return `<div class="piz-contact">
-          <div class="piz-av">${ini}</div>
-          <div><div class="piz-cname">${c.n}</div><div class="piz-ctel">${c.t}</div></div>
-        </div>`;
-      }).join('')
-    : '<div class="empty-h">Sin contactos aún</div>';
-}
-function renderPizMsgs() {
-  document.getElementById('piz-msgs').innerHTML = D.msg.length
-    ? D.msg.map(m => `<div class="piz-msg" style="background:${m.bg};color:${m.fg}">${m.t}</div>`).join('')
-    : '<div class="empty-h">Sin mensajes aún</div>';
-}
-function renderPizarra() { renderPizEvents(); renderPizContacts(); renderPizMsgs(); }
+      const firebaseConfig = {
+        apiKey: "AIzaSyAwUxXqPfM8-NiZxA3HpxKRu9LXLIZMoMY",
+        authDomain: "mi-pizarra-familiar.firebaseapp.com",
+        projectId: "mi-pizarra-familiar",
+        storageBucket: "mi-pizarra-familiar.firebasestorage.app",
+        messagingSenderId: "761893229587",
+        appId: "1:761893229587:web:99a24ea85dabbdcab1dbe6",
+      };
+      const app = initializeApp(firebaseConfig),
+        db = getFirestore(app),
+        auth = getAuth(app);
 
-function syncCanvasToPiz() {
-  const pc = document.getElementById('pizCanvas');
-  if (!pc) return;
-  const cx = pc.getContext('2d');
-  cx.clearRect(0,0,pc.width,pc.height);
-  if (canvasData) { const img = new Image(); img.onload = () => cx.drawImage(img,0,0,pc.width,pc.height); img.src = canvasData; }
-}
+      const USUARIOS = {
+        "ojeda-alvarado": { ojeda: "oa2024" },
+        "barrientos-ojeda": { barrientos: "bo2024" },
+        "saldivia-ojeda": { saldivia: "so2024" },
+        "ojeda-rojas": { ojedarojas: "or2024" },
+      };
+      const ADMIN_USER = "admin",
+        ADMIN_PASS = "admin2024";
+      const FAM_NAMES = {
+        "ojeda-alvarado": "Ojeda Alvarado",
+        "barrientos-ojeda": "Barrientos Ojeda",
+        "saldivia-ojeda": "Saldivia Ojeda",
+        "ojeda-rojas": "Ojeda Rojas",
+      };
 
-/* ========== RELOJ ========== */
-let clockInt = null;
-function startClock() { updateClock(); clockInt = setInterval(updateClock, 1000); }
-function stopClock() { clearInterval(clockInt); }
-function updateClock() {
-  const n = new Date();
-  const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  const hh = n.getHours().toString().padStart(2,'0');
-  const mm = n.getMinutes().toString().padStart(2,'0');
-  const el = document.getElementById('piz-clock');
-  if (el) el.textContent = `${dias[n.getDay()]} ${n.getDate()} ${meses[n.getMonth()]} · ${hh}:${mm}`;
-}
+      let loggedIn = false,
+        currentFamId = null,
+        isAdmin = false,
+        selectedFamLogin = null,
+        currentUser = "";
 
-</script>
-</body>
+      /* ========== INACTIVITY ========== */
+      let inactTimer = null,
+        inactTimeout = 600000;
+      function resetInact() {
+        clearTimeout(inactTimer);
+        if (!loggedIn || inactTimeout === 0) return;
+        inactTimer = setTimeout(lockSession, inactTimeout);
+      }
+      function lockSession() {
+        document.getElementById("inact-overlay").classList.add("open");
+      }
+      window.unlockSession = function () {
+        document.getElementById("inact-overlay").classList.remove("open");
+        resetInact();
+      };
+      ["click", "keydown", "mousemove", "touchstart"].forEach((ev) =>
+        document.addEventListener(ev, resetInact, { passive: true }),
+      );
+      window.saveTimeout = function () {
+        const v = +document.getElementById("sec-timeout").value;
+        inactTimeout = v * 60000;
+        localStorage.setItem("piz_timeout", String(v));
+        showStatus("Tiempo de inactividad guardado", "ok");
+        resetInact();
+      };
+      (function () {
+        const v = localStorage.getItem("piz_timeout");
+        if (v) {
+          inactTimeout = +v * 60000;
+          setTimeout(() => {
+            const el = document.getElementById("sec-timeout");
+            if (el) el.value = v;
+          }, 200);
+        }
+      })();
+
+      /* ========== PIN ========== */
+      let pinBuffer = "",
+        pinMode = "unlock",
+        pinFamId = null;
+      window.tryShowPin = function () {
+        const flag = localStorage.getItem("piz_pin_flag_" + selectedFamLogin);
+        if (!flag) {
+          showStatus("No hay PIN configurado para esta familia", "info");
+          return;
+        }
+        pinMode = "unlock";
+        pinFamId = selectedFamLogin;
+        document.getElementById("pin-sub").textContent = "Ingresa tu PIN";
+        document.getElementById("pin-display").textContent =
+          "\u00b7\u00b7\u00b7\u00b7";
+        document.getElementById("pin-err").textContent = "";
+        pinBuffer = "";
+        document.getElementById("login-screen").style.display = "none";
+        document.getElementById("pin-screen").style.display = "flex";
+      };
+      window.showLoginFromPin = function () {
+        document.getElementById("pin-screen").style.display = "none";
+        document.getElementById("login-screen").style.display = "flex";
+      };
+      window.pinPress = function (d) {
+        if (pinBuffer.length >= 4) return;
+        pinBuffer += d;
+        document.getElementById("pin-display").textContent = "\u2022"
+          .repeat(pinBuffer.length)
+          .padEnd(4, "\u00b7");
+        if (pinBuffer.length === 4) setTimeout(checkPin, 150);
+      };
+      window.pinBack = function () {
+        pinBuffer = pinBuffer.slice(0, -1);
+        document.getElementById("pin-display").textContent = "\u2022"
+          .repeat(pinBuffer.length)
+          .padEnd(4, "\u00b7");
+      };
+      window.pinClear = function () {
+        pinBuffer = "";
+        document.getElementById("pin-display").textContent =
+          "\u00b7\u00b7\u00b7\u00b7";
+      };
+      async function checkPin() {
+        const fam = pinFamId;
+        document.getElementById("pin-err").textContent = "";
+        try {
+          await signInAnonymously(auth);
+          const pinDoc = await getDoc(doc(db, "familias", fam, "config", "pin"));
+          const storedPin = pinDoc.exists() ? pinDoc.data().value : null;
+          if (storedPin && pinBuffer === storedPin) {
+            document.getElementById("pin-screen").style.display = "none";
+            currentFamId = fam;
+            currentUser = "pin";
+            isAdmin = false;
+            loggedIn = true;
+            document.getElementById("main-app").style.display = "block";
+            updateNavFam();
+            initListeners();
+            showStatus("Acceso con PIN - " + FAM_NAMES[fam], "ok");
+            setSyncDot(true);
+            resetInact();
+            logAccess(fam, "pin");
+          } else {
+            await signOut(auth);
+            document.getElementById("pin-err").textContent = "PIN incorrecto";
+            pinBuffer = "";
+            document.getElementById("pin-display").textContent = "\u00b7\u00b7\u00b7\u00b7";
+          }
+        } catch (e) {
+          document.getElementById("pin-err").textContent = "Error de conexi\u00f3n";
+          pinBuffer = "";
+          document.getElementById("pin-display").textContent = "\u00b7\u00b7\u00b7\u00b7";
+        }
+      }
+      window.savePIN = async function () {
+        const p1 = document.getElementById("sec-pin-new").value,
+          p2 = document.getElementById("sec-pin-new2").value;
+        const statusEl = document.getElementById("sec-pin-status");
+        if (!/^\d{4}$/.test(p1)) { statusEl.textContent = "El PIN debe tener exactamente 4 d\u00edgitos"; return; }
+        if (p1 !== p2) { statusEl.textContent = "Los PINes no coinciden"; return; }
+        statusEl.textContent = "Guardando...";
+        try {
+          await setDoc(doc(db, "familias", currentFamId, "config", "pin"), { value: p1, ts: serverTimestamp() });
+          localStorage.setItem("piz_pin_flag_" + currentFamId, "1");
+          statusEl.textContent = "\u2705 PIN guardado";
+          document.getElementById("sec-pin-new").value = "";
+          document.getElementById("sec-pin-new2").value = "";
+        } catch (e) {
+          statusEl.textContent = "Error al guardar: " + e.message;
+        }
+      };
+      window.clearPIN = async function () {
+        try {
+          await deleteDoc(doc(db, "familias", currentFamId, "config", "pin"));
+          localStorage.removeItem("piz_pin_flag_" + currentFamId);
+          document.getElementById("sec-pin-status").textContent = "PIN eliminado";
+        } catch (e) {
+          document.getElementById("sec-pin-status").textContent = "Error: " + e.message;
+        }
+      };
+
+      /* ========== ACCESS HISTORY ========== */
+      async function logAccess(famId, method) {
+        try {
+          await addDoc(collection(db, "familias", famId, "accesos"), {
+            user: currentUser,
+            method: method || "password",
+            ts: serverTimestamp(),
+            ua: navigator.userAgent.substring(0, 80),
+          });
+        } catch {}
+      }
+      function renderAccessHistory() {
+        const el = document.getElementById("access-history");
+        if (!el) return;
+        getDocs(
+          query(
+            collection(db, "familias", currentFamId, "accesos"),
+            orderBy("ts", "desc"),
+          ),
+        )
+          .then((snap) => {
+            if (snap.empty) {
+              el.innerHTML = '<div class="empty-h">Sin historial</div>';
+              return;
+            }
+            el.innerHTML = snap.docs
+              .slice(0, 20)
+              .map((d) => {
+                const dat = d.data(),
+                  ts = dat.ts ? dat.ts.toDate() : null,
+                  str = ts
+                    ? ts.toLocaleDateString("es-CL") +
+                      " " +
+                      ts.toLocaleTimeString("es-CL", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "";
+                return (
+                  '<div class="history-item">&#128100; ' +
+                  dat.user +
+                  ' <span style="font-size:10px;background:#e8f0fe;padding:1px 5px;border-radius:8px;">' +
+                  dat.method +
+                  '</span> <span class="history-time">' +
+                  str +
+                  "</span></div>"
+                );
+              })
+              .join("");
+          })
+          .catch(() => {
+            el.innerHTML = '<div class="empty-h">No disponible</div>';
+          });
+      }
+
+      /* ========== CHANGE PASSWORD ========== */
+      window.changePassword = async function () {
+        const old = document.getElementById("sec-pass-old").value,
+          n1 = document.getElementById("sec-pass-new").value,
+          n2 = document.getElementById("sec-pass-new2").value;
+        if (!old || !n1 || !n2) { showStatus("Completa todos los campos", "err"); return; }
+        if (currentUser === "pin") { showStatus("Inicia sesi\u00f3n con usuario/contrase\u00f1a para cambiar la clave", "err"); return; }
+        /* Verify current password: check Firestore override first, then defaults */
+        let currentPass;
+        try {
+          const credsDoc = await getDoc(doc(db, "familias", currentFamId, "config", "credenciales"));
+          currentPass = credsDoc.exists() && credsDoc.data()[currentUser] !== undefined
+            ? credsDoc.data()[currentUser]
+            : (USUARIOS[currentFamId] || {})[currentUser];
+        } catch { currentPass = (USUARIOS[currentFamId] || {})[currentUser]; }
+        if (old !== currentPass) { showStatus("Contrase\u00f1a actual incorrecta", "err"); return; }
+        if (n1 !== n2) { showStatus("Las nuevas contrase\u00f1as no coinciden", "err"); return; }
+        if (n1.length < 4) { showStatus("La contrase\u00f1a debe tener al menos 4 caracteres", "err"); return; }
+        try {
+          await setDoc(doc(db, "familias", currentFamId, "config", "credenciales"), { [currentUser]: n1 }, { merge: true });
+          if (USUARIOS[currentFamId]) USUARIOS[currentFamId][currentUser] = n1;
+          document.getElementById("sec-pass-old").value = "";
+          document.getElementById("sec-pass-new").value = "";
+          document.getElementById("sec-pass-new2").value = "";
+          showStatus("\u2705 Contrase\u00f1a cambiada y guardada", "ok");
+        } catch (e) {
+          showStatus("Error al guardar: " + e.message, "err");
+        }
+      };
+
+      /* ========== SELECTORS ========== */
+      window.selFam = function (famId, el) {
+        selectedFamLogin = famId;
+        document
+          .querySelectorAll(".fam-btn")
+          .forEach((b) => b.classList.remove("selected"));
+        el.classList.add("selected");
+        document.getElementById("login-err").textContent = "";
+        /* Auto-rellenar usuario de la familia */
+        const famUser = Object.keys(USUARIOS[famId] || {})[0] || "";
+        document.getElementById("l-user").value = famUser;
+        document.getElementById("l-user").style.display = "none";
+        document.getElementById("l-user-badge-text").textContent = famUser;
+        document.getElementById("l-user-badge").style.display = "flex";
+        /* PIN link */
+        const hasPINFlag = !!localStorage.getItem("piz_pin_flag_" + famId);
+        document.getElementById("pin-link").style.display = hasPINFlag ? "block" : "none";
+        /* Ocultar link admin y enfocar contraseña */
+        document.getElementById("admin-link").style.display = "none";
+        document.getElementById("l-pass").focus();
+      };
+      window.selAdmin = function () {
+        selectedFamLogin = null;
+        document.querySelectorAll(".fam-btn").forEach((b) => b.classList.remove("selected"));
+        document.getElementById("login-err").textContent = "";
+        document.getElementById("l-user").value = "admin";
+        document.getElementById("l-user").style.display = "none";
+        document.getElementById("l-user-badge-text").textContent = "admin";
+        document.getElementById("l-user-badge").style.display = "flex";
+        document.getElementById("pin-link").style.display = "none";
+        document.getElementById("admin-link").style.display = "none";
+        document.getElementById("l-pass").focus();
+      };
+      window.resetLoginUser = function () {
+        selectedFamLogin = null;
+        document.querySelectorAll(".fam-btn").forEach((b) => b.classList.remove("selected"));
+        document.getElementById("l-user").value = "";
+        document.getElementById("l-user").style.display = "none";
+        document.getElementById("l-user-badge").style.display = "none";
+        document.getElementById("pin-link").style.display = "none";
+        document.getElementById("admin-link").style.display = "inline";
+      };
+
+      /* ========== LOGIN ========== */
+      window.doLogin = async function () {
+        const u = document.getElementById("l-user").value.trim().toLowerCase(),
+          p = document.getElementById("l-pass").value;
+        const err = document.getElementById("login-err"),
+          btn = document.querySelector(".login-btn");
+        /* Basic pre-checks before hitting Firestore */
+        if (u === ADMIN_USER) {
+          /* Admin uses fixed password only */
+          if (p !== ADMIN_PASS) {
+            err.textContent = "Contrase\u00f1a incorrecta";
+            document.getElementById("l-pass").value = "";
+            return;
+          }
+        } else {
+          if (!selectedFamLogin) { err.textContent = "Selecciona tu familia primero"; return; }
+          if (!USUARIOS[selectedFamLogin] || !USUARIOS[selectedFamLogin][u]) {
+            err.textContent = "Usuario no encontrado";
+            document.getElementById("l-pass").value = "";
+            return;
+          }
+        }
+        btn.textContent = "Conectando...";
+        btn.disabled = true;
+        err.textContent = "";
+        try {
+          /* Sign in anonymously first to get Firestore access */
+          await signInAnonymously(auth);
+          /* Validate password: check Firestore override, then fall back to defaults */
+          let validPass = true;
+          if (u !== ADMIN_USER) {
+            let expectedPass;
+            try {
+              const credsDoc = await getDoc(doc(db, "familias", selectedFamLogin, "config", "credenciales"));
+              expectedPass = credsDoc.exists() && credsDoc.data()[u] !== undefined
+                ? credsDoc.data()[u]
+                : USUARIOS[selectedFamLogin][u];
+            } catch { expectedPass = USUARIOS[selectedFamLogin][u]; }
+            validPass = p === expectedPass;
+          }
+          if (!validPass) {
+            await signOut(auth);
+            err.textContent = "Usuario o contrase\u00f1a incorrectos";
+            document.getElementById("l-pass").value = "";
+            return;
+          }
+          /* Credentials OK */
+          currentUser = u;
+          isAdmin = u === ADMIN_USER;
+          currentFamId = isAdmin ? "ojeda-alvarado" : selectedFamLogin;
+          loggedIn = true;
+          document.getElementById("login-screen").style.display = "none";
+          document.getElementById("main-app").style.display = "block";
+          updateNavFam();
+          if (isAdmin) {
+            document.getElementById("admin-bar").style.display = "flex";
+            document.getElementById("admin-fam-sel").value = currentFamId;
+          }
+          initListeners();
+          showStatus("Conectado - " + FAM_NAMES[currentFamId], "ok");
+          setSyncDot(true);
+          resetInact();
+          logAccess(currentFamId, "password");
+        } catch (e) {
+          err.textContent = "Error: " + e.message;
+          loggedIn = false;
+          try { await signOut(auth); } catch {}
+        } finally {
+          btn.textContent = "Entrar";
+          btn.disabled = false;
+        }
+      };
+
+      function updateNavFam() {
+        document.getElementById("nav-fam-name").textContent =
+          FAM_NAMES[currentFamId] || "Pizarra";
+        const pl = document.getElementById("piz-fam-label");
+        if (pl)
+          pl.textContent =
+            (isAdmin ? "Admin - " : "") +
+            FAM_NAMES[currentFamId] +
+            " - tiempo real";
+      }
+
+      window.adminChangeFam = function (famId) {
+        currentFamId = famId;
+        unsubAll();
+        D = { ev: [], con: [], msg: [], canvas: null };
+        pCtx = null;
+        canvasData = null;
+        drawings = [];
+        updateNavFam();
+        initListeners();
+        showStatus("Viendo: " + FAM_NAMES[famId], "info");
+      };
+
+      window.doLogout = async function () {
+        loggedIn = false;
+        isAdmin = false;
+        currentFamId = null;
+        selectedFamLogin = null;
+        clearTimeout(inactTimer);
+        unsubAll();
+        try {
+          await signOut(auth);
+        } catch {}
+        document.getElementById("login-screen").style.display = "flex";
+        document.getElementById("main-app").style.display = "none";
+        document.getElementById("admin-bar").style.display = "none";
+        document.getElementById("l-user").value = "";
+        document.getElementById("l-user-badge").style.display = "none";
+        document.getElementById("admin-link").style.display = "inline";
+        document.getElementById("l-pass").value = "";
+        document
+          .querySelectorAll(".fam-btn")
+          .forEach((b) => b.classList.remove("selected"));
+        document.getElementById("pin-link").style.display = "none";
+        stopClock();
+        setSyncDot(false);
+      };
+
+      function showStatus(msg, type) {
+        const el = document.getElementById("status-bar");
+        el.textContent = msg;
+        el.className = type;
+        setTimeout(() => (el.className = ""), 3500);
+      }
+      function setSyncDot(on) {
+        document.getElementById("sync-dot").className =
+          "sync-dot" + (on ? "" : " off");
+      }
+      function fmtD(d) {
+        if (!d) return "";
+        const [y, m, day] = d.split("-");
+        return day + "/" + m;
+      }
+      function fmtDateTime(ts) {
+        if (!ts) return "";
+        const d = ts.toDate ? ts.toDate() : new Date(ts);
+        return (
+          d.getDate().toString().padStart(2, "0") +
+          "/" +
+          (d.getMonth() + 1).toString().padStart(2, "0") +
+          " " +
+          d.getHours().toString().padStart(2, "0") +
+          ":" +
+          d.getMinutes().toString().padStart(2, "0")
+        );
+      }
+      function famCol(name) {
+        return collection(db, "familias", currentFamId, name);
+      }
+      function famDoc(name, id) {
+        return doc(db, "familias", currentFamId, name, id);
+      }
+
+      window.switchView = function (v) {
+        const isP = v === "panel";
+        document.getElementById("panel-view").style.display = isP
+          ? "block"
+          : "none";
+        document
+          .getElementById("pizarra-view")
+          .classList.toggle("visible", !isP);
+        document.getElementById("btn-ctrl").className =
+          "nav-btn nav-ctrl" + (isP ? " nav-active" : "");
+        document.getElementById("btn-view").className =
+          "nav-btn nav-view" + (!isP ? " nav-active" : "");
+        if (!isP) {
+          renderPizarra();
+          startClock();
+          setTimeout(syncCanvasToPiz, 80);
+        } else stopClock();
+      };
+
+      window.showPTab = function (id, btn) {
+        document
+          .querySelectorAll(".psec")
+          .forEach((s) => s.classList.remove("on"));
+        document
+          .querySelectorAll(".ptab")
+          .forEach((b) => b.classList.remove("on"));
+        document.getElementById("psec-" + id).classList.add("on");
+        btn.classList.add("on");
+        if (id === "draw") setTimeout(initCanvas, 50);
+        if (id === "cal") renderCalMonth();
+        if (id === "sec") {
+          renderAccessHistory();
+          updatePinStatus();
+        }
+      };
+
+      function updatePinStatus() {
+        const hasPIN = !!localStorage.getItem("piz_pin_flag_" + currentFamId);
+        document.getElementById("sec-pin-status").textContent = hasPIN
+          ? "\u2705 PIN configurado"
+          : "Sin PIN configurado";
+      }
+
+      window.goFullscreen = function () {
+        const el = document.getElementById("pizarra-view");
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      };
+
+      let unsubs = [],
+        D = { ev: [], con: [], msg: [], canvas: null },
+        pCtx = null,
+        canvasData = null;
+      let drawings = [],
+        currentDrawId = null;
+      function unsubAll() {
+        unsubs.forEach((u) => u());
+        unsubs = [];
+      }
+
+      function initListeners() {
+        unsubs.push(
+          onSnapshot(
+            query(famCol("eventos"), orderBy("ts", "asc")),
+            (snap) => {
+              D.ev = snap.docs
+                .map((d) => ({ id: d.id, ...d.data() }))
+                .sort((a, b) =>
+                  (
+                    (a.f || "9999-12-31") +
+                    "T" +
+                    (a.h || "00:00")
+                  ).localeCompare(
+                    (b.f || "9999-12-31") + "T" + (b.h || "00:00"),
+                  ),
+                );
+              renderCalPanel();
+              renderPizEvents();
+              renderCalMonth();
+            },
+            () => setSyncDot(false),
+          ),
+        );
+        unsubs.push(
+          onSnapshot(
+            query(famCol("contactos"), orderBy("ts", "desc")),
+            (snap) => {
+              D.con = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+              renderConPanel();
+              renderPizContacts();
+            },
+            () => setSyncDot(false),
+          ),
+        );
+        unsubs.push(
+          onSnapshot(
+            query(famCol("mensajes"), orderBy("ts", "asc")),
+            (snap) => {
+              D.msg = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+              purgeMsgs();
+              renderMsgPanel();
+              renderPizMsgs();
+            },
+            () => setSyncDot(false),
+          ),
+        );
+        unsubs.push(
+          onSnapshot(
+            query(famCol("dibujos"), orderBy("ts", "desc")),
+            (snap) => {
+              drawings = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+              renderDrawingsList();
+              if (!currentDrawId && drawings.length > 0) {
+                loadDrawing(drawings[0].id);
+              }
+            },
+            () => {},
+          ),
+        );
+      }
+
+      /* ========== CALENDAR ========== */
+      const CAT_COLORS = {
+        general: { bg: "#f9f6f0", border: "#e8a87c", dot: "#e8a87c" },
+        medico: { bg: "#fff0f0", border: "#e24b4a", dot: "#e24b4a" },
+        colegio: { bg: "#fffbeb", border: "#f59e0b", dot: "#f59e0b" },
+        trabajo: { bg: "#f0f7ff", border: "#185fa5", dot: "#185fa5" },
+        cumple: { bg: "#fdf4ff", border: "#a855f7", dot: "#a855f7" },
+      };
+      let calCat = "general";
+      window.selCalCat = function (el, cat) {
+        calCat = cat;
+        document
+          .querySelectorAll("#cal-cat-row .cat-opt")
+          .forEach((x) => x.classList.remove("sel"));
+        el.classList.add("sel");
+      };
+      let calViewMode = "lista",
+        calMonthDate = new Date();
+      window.setCalView = function (mode) {
+        calViewMode = mode;
+        document
+          .getElementById("cal-btn-lista")
+          .classList.toggle("on", mode === "lista");
+        document
+          .getElementById("cal-btn-mes")
+          .classList.toggle("on", mode === "mes");
+        document.getElementById("cal-month-view").style.display =
+          mode === "mes" ? "block" : "none";
+        if (mode === "mes") renderCalMonth();
+      };
+      window.changeMonth = function (dir) {
+        calMonthDate = new Date(
+          calMonthDate.getFullYear(),
+          calMonthDate.getMonth() + dir,
+          1,
+        );
+        renderCalMonth();
+      };
+      function renderCalMonth() {
+        if (calViewMode !== "mes") return;
+        const meses = [
+          "Enero",
+          "Febrero",
+          "Marzo",
+          "Abril",
+          "Mayo",
+          "Junio",
+          "Julio",
+          "Agosto",
+          "Septiembre",
+          "Octubre",
+          "Noviembre",
+          "Diciembre",
+        ];
+        const y = calMonthDate.getFullYear(),
+          m = calMonthDate.getMonth();
+        document.getElementById("cal-month-title").textContent =
+          meses[m] + " " + y;
+        const primerDia = new Date(y, m, 1).getDay(),
+          diasEnMes = new Date(y, m + 1, 0).getDate(),
+          hoyStr = new Date().toISOString().slice(0, 10);
+        const evMap = {};
+        D.ev.forEach((e) => {
+          if (!e.f) return;
+          if (!evMap[e.f]) evMap[e.f] = [];
+          evMap[e.f].push(e);
+        });
+        const dn = ["Dom", "Lun", "Mar", "Mi\u00e9", "Jue", "Vie", "S\u00e1b"];
+        let html = dn
+          .map((d) => '<div class="cal-day-name">' + d + "</div>")
+          .join("");
+        for (let i = 0; i < primerDia; i++)
+          html += '<div class="cal-day other-month"></div>';
+        for (let d = 1; d <= diasEnMes; d++) {
+          const ds =
+              y +
+              "-" +
+              String(m + 1).padStart(2, "0") +
+              "-" +
+              String(d).padStart(2, "0"),
+            isT = ds === hoyStr,
+            evs = evMap[ds] || [];
+          const dots = evs
+            .slice(0, 3)
+            .map(
+              (e) =>
+                '<div class="cal-day-dot" style="background:' +
+                CAT_COLORS[e.cat || "general"].dot +
+                '"></div>',
+            )
+            .join("");
+          const cls = [
+            "cal-day",
+            isT ? "today" : "",
+            evs.length ? "has-event" : "",
+          ]
+            .filter(Boolean)
+            .join(" ");
+          html +=
+            '<div class="' +
+            cls +
+            '" onclick="pickCalDay(\'' +
+            ds +
+            '\')" title="' +
+            evs.map((e) => e.a).join(", ") +
+            '">' +
+            d +
+            (dots
+              ? '<div style="display:flex;gap:2px;">' + dots + "</div>"
+              : "") +
+            "</div>";
+        }
+        document.getElementById("cal-grid").innerHTML = html;
+      }
+      window.pickCalDay = function (dateStr) {
+        document.getElementById("cal-fecha").value = dateStr;
+        document
+          .querySelectorAll(".cal-day.selected-day")
+          .forEach((el) => el.classList.remove("selected-day"));
+        document.getElementById("cal-act").focus();
+      };
+      function scheduleReminder(ev) {
+        const min = parseInt(ev.rec);
+        if (!min || !ev.f || !ev.h) return;
+        const diff =
+          new Date(ev.f + "T" + ev.h).getTime() - min * 60000 - Date.now();
+        if (diff > 0 && diff < 172800000)
+          setTimeout(() => {
+            if (Notification.permission === "granted")
+              new Notification("Recordatorio", {
+                body: ev.a + " - " + fmtD(ev.f) + " " + ev.h,
+              });
+            else showStatus("Recordatorio: " + ev.a, "info");
+          }, diff);
+      }
+      function reqNotif() {
+        if ("Notification" in window && Notification.permission === "default")
+          Notification.requestPermission();
+      }
+      let calEditId = null;
+      window.saveEvento = async function () {
+        const f = document.getElementById("cal-fecha").value,
+          h = document.getElementById("cal-hora").value,
+          a = document.getElementById("cal-act").value.trim();
+        if (!a) return;
+        const rec = document.getElementById("cal-rec").value,
+          recurrente = document.getElementById("cal-recurrente").value;
+        const data = {
+          f,
+          h,
+          a,
+          cat: calCat,
+          rec,
+          recurrente,
+          ts: serverTimestamp(),
+        };
+        try {
+          if (calEditId) {
+            await setDoc(famDoc("eventos", calEditId), data);
+            showStatus("Evento actualizado", "ok");
+            cancelEdit("cal");
+          } else {
+            const ref = await addDoc(famCol("eventos"), data);
+            showStatus("Evento agregado", "ok");
+            scheduleReminder({ ...data, id: ref.id });
+            reqNotif();
+          }
+          document.getElementById("cal-act").value = "";
+          document.getElementById("cal-fecha").value = "";
+        } catch (e) {
+          showStatus("Error: " + e.message, "err");
+        }
+      };
+      window.editEv = function (id) {
+        const e = D.ev.find((x) => x.id === id);
+        if (!e) return;
+        calEditId = id;
+        document.getElementById("cal-fecha").value = e.f || "";
+        document.getElementById("cal-hora").value = e.h || "10:00";
+        document.getElementById("cal-act").value = e.a || "";
+        document.getElementById("cal-rec").value = e.rec || "";
+        document.getElementById("cal-recurrente").value = e.recurrente || "";
+        calCat = e.cat || "general";
+        document
+          .querySelectorAll("#cal-cat-row .cat-opt")
+          .forEach((x) => x.classList.toggle("sel", x.dataset.cat === calCat));
+        document.getElementById("cal-banner").style.display = "block";
+        document.getElementById("cal-save-btn").textContent = "Guardar cambios";
+        document.getElementById("cal-cancel-btn").style.display =
+          "inline-block";
+        document.getElementById("cal-act").focus();
+      };
+      window.delEv = async function (id) {
+        if (!confirm("Eliminar este evento?")) return;
+        try {
+          await deleteDoc(famDoc("eventos", id));
+          showStatus("Evento eliminado", "info");
+        } catch (e) {
+          showStatus("Error: " + e.message, "err");
+        }
+      };
+      window.cancelEdit = function (t) {
+        if (t === "cal") {
+          calEditId = null;
+          document.getElementById("cal-act").value = "";
+          document.getElementById("cal-fecha").value = "";
+          document.getElementById("cal-rec").value = "";
+          document.getElementById("cal-recurrente").value = "";
+          document.getElementById("cal-banner").style.display = "none";
+          document.getElementById("cal-save-btn").textContent = "+ Agregar";
+          document.getElementById("cal-cancel-btn").style.display = "none";
+          calCat = "general";
+          document
+            .querySelectorAll("#cal-cat-row .cat-opt")
+            .forEach((x) =>
+              x.classList.toggle("sel", x.dataset.cat === "general"),
+            );
+        }
+        if (t === "con") {
+          conEditId = null;
+          document.getElementById("con-nom").value = "";
+          document.getElementById("con-tel").value = "";
+          document.getElementById("con-nota").value = "";
+          document.getElementById("con-foto-url").value = "";
+          conFotoData = "";
+          document.getElementById("con-foto-preview").style.display = "none";
+          document.getElementById("con-banner").style.display = "none";
+          document.getElementById("con-save-btn").textContent = "+ Agregar";
+          document.getElementById("con-cancel-btn").style.display = "none";
+          conCat = "personal";
+          document
+            .querySelectorAll("#con-cat-row .cat-opt")
+            .forEach((x) =>
+              x.classList.toggle("sel", x.dataset.cat === "personal"),
+            );
+        }
+      };
+      function esPasado(f, h) {
+        if (!f) return false;
+        return new Date(f + "T" + (h || "23:59")) < new Date();
+      }
+      function renderCalPanel() {
+        if (!D.ev.length) {
+          document.getElementById("cal-list").innerHTML =
+            '<div class="empty-h">Sin eventos</div>';
+          return;
+        }
+        const hoy = new Date().toISOString().slice(0, 10);
+        document.getElementById("cal-list").innerHTML = D.ev
+          .map((e) => {
+            const pasado = esPasado(e.f, e.h),
+              esHoy = e.f === hoy,
+              col = CAT_COLORS[e.cat || "general"];
+            const badge = esHoy
+              ? '<span style="background:#fde68a;color:#92400e;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:700;">HOY</span> '
+              : pasado
+                ? '<span style="background:#f3f4f6;color:#9ca3af;font-size:10px;padding:1px 6px;border-radius:10px;">pasado</span> '
+                : "";
+            const recLabel = e.recurrente
+              ? '<span style="font-size:10px;color:#888;margin-left:4px;">' +
+                e.recurrente +
+                "</span>"
+              : "";
+            return (
+              '<div class="p-item" style="background:' +
+              col.bg +
+              ";border-left:3px solid " +
+              col.border +
+              ";" +
+              (pasado && !esHoy ? "opacity:.55;" : "") +
+              '"><div class="p-item-main">' +
+              badge +
+              '<span class="p-label">' +
+              fmtD(e.f) +
+              " " +
+              (e.h || "") +
+              "</span> &mdash; " +
+              e.a +
+              recLabel +
+              '</div><div class="p-actions"><button class="ebtn" onclick="editEv(\'' +
+              e.id +
+              '\')">&#9999;</button><button class="dbtn" onclick="delEv(\'' +
+              e.id +
+              "')\">&#128465;</button></div></div>"
+            );
+          })
+          .join("");
+      }
+
+      /* ========== CONTACTS ========== */
+      const CON_CAT_COLORS = {
+        personal: { bg: "#e8f0fe", text: "#185fa5" },
+        medico: { bg: "#fee2e2", text: "#a32d2d" },
+        colegio: { bg: "#fffbeb", text: "#92400e" },
+        trabajo: { bg: "#f0f7ff", text: "#1e3a5f" },
+        emergencia: { bg: "#fecaca", text: "#7f1d1d" },
+      };
+      let conCat = "personal",
+        conFotoData = "";
+      window.selConCat = function (el, cat) {
+        conCat = cat;
+        document
+          .querySelectorAll("#con-cat-row .cat-opt")
+          .forEach((x) => x.classList.remove("sel"));
+        el.classList.add("sel");
+      };
+      window.loadConFoto = function (input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          conFotoData = e.target.result;
+          document.getElementById("con-foto-img").src = conFotoData;
+          document.getElementById("con-foto-preview").style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      };
+      document
+        .getElementById("con-foto-url")
+        .addEventListener("input", function () {
+          if (this.value) {
+            document.getElementById("con-foto-img").src = this.value;
+            document.getElementById("con-foto-preview").style.display = "block";
+            conFotoData = this.value;
+          }
+        });
+      let conEditId = null;
+      window.saveContacto = async function () {
+        const n = document.getElementById("con-nom").value.trim(),
+          t = document.getElementById("con-tel").value.trim();
+        if (!n && !t) return;
+        const nota = document.getElementById("con-nota").value.trim(),
+          foto =
+            conFotoData ||
+            document.getElementById("con-foto-url").value.trim() ||
+            "";
+        const data = { n, t, nota, cat: conCat, foto, ts: serverTimestamp() };
+        try {
+          if (conEditId) {
+            await setDoc(famDoc("contactos", conEditId), data);
+            showStatus("Contacto actualizado", "ok");
+            cancelEdit("con");
+          } else {
+            await addDoc(famCol("contactos"), data);
+            showStatus("Contacto agregado", "ok");
+          }
+          document.getElementById("con-nom").value = "";
+          document.getElementById("con-tel").value = "";
+          document.getElementById("con-nota").value = "";
+          document.getElementById("con-foto-url").value = "";
+          conFotoData = "";
+          document.getElementById("con-foto-preview").style.display = "none";
+        } catch (e) {
+          showStatus("Error: " + e.message, "err");
+        }
+      };
+      window.editCon = function (id) {
+        const c = D.con.find((x) => x.id === id);
+        if (!c) return;
+        conEditId = id;
+        document.getElementById("con-nom").value = c.n || "";
+        document.getElementById("con-tel").value = c.t || "";
+        document.getElementById("con-nota").value = c.nota || "";
+        if (c.foto) {
+          document.getElementById("con-foto-url").value = c.foto.startsWith(
+            "data:",
+          )
+            ? ""
+            : c.foto;
+          conFotoData = c.foto.startsWith("data:") ? c.foto : "";
+          document.getElementById("con-foto-img").src = c.foto;
+          document.getElementById("con-foto-preview").style.display = "block";
+        }
+        conCat = c.cat || "personal";
+        document
+          .querySelectorAll("#con-cat-row .cat-opt")
+          .forEach((x) => x.classList.toggle("sel", x.dataset.cat === conCat));
+        document.getElementById("con-banner").style.display = "block";
+        document.getElementById("con-save-btn").textContent = "Guardar cambios";
+        document.getElementById("con-cancel-btn").style.display =
+          "inline-block";
+        document.getElementById("con-nom").focus();
+      };
+      window.delCon = async function (id) {
+        if (!confirm("Eliminar este contacto?")) return;
+        try {
+          await deleteDoc(famDoc("contactos", id));
+          showStatus("Contacto eliminado", "info");
+        } catch (e) {
+          showStatus("Error: " + e.message, "err");
+        }
+      };
+      function conAvHTML(c, size = 36) {
+        const ie = c.cat === "emergencia",
+          ini = c.n
+            ? c.n
+                .split(" ")
+                .map((w) => w[0])
+                .join("")
+                .toUpperCase()
+                .slice(0, 2)
+            : "?";
+        const bg = ie ? "#fecaca" : "#d0e8f8",
+          col = ie ? "#a32d2d" : "#185fa5";
+        if (c.foto)
+          return (
+            '<div class="con-av" style="width:' +
+            size +
+            "px;height:" +
+            size +
+            "px;background:" +
+            bg +
+            '"><img src="' +
+            c.foto +
+            '" onerror="this.style.display=\'none\'"><span style="color:' +
+            col +
+            ';position:absolute;">' +
+            ini +
+            "</span></div>"
+          );
+        return (
+          '<div class="con-av" style="width:' +
+          size +
+          "px;height:" +
+          size +
+          "px;background:" +
+          bg +
+          ";color:" +
+          col +
+          ';">' +
+          ini +
+          "</div>"
+        );
+      }
+      function conItemHTML(c) {
+        const cc = CON_CAT_COLORS[c.cat || "personal"];
+        return (
+          '<div class="p-item">' +
+          conAvHTML(c) +
+          '<div class="p-item-main"><span class="con-cat-badge" style="background:' +
+          cc.bg +
+          ";color:" +
+          cc.text +
+          ';">' +
+          (c.cat || "personal") +
+          '</span> <span class="p-label">' +
+          c.n +
+          "</span>" +
+          (c.t
+            ? ' &middot; <a href="tel:' +
+              c.t +
+              '" style="color:#185fa5;text-decoration:none;font-family:Caveat,cursive;font-size:15px;">' +
+              c.t +
+              "</a>"
+            : "") +
+          (c.nota
+            ? '<br><span style="font-size:11px;color:#999">' +
+              c.nota +
+              "</span>"
+            : "") +
+          '</div><div class="p-actions"><button class="ebtn" onclick="editCon(\'' +
+          c.id +
+          '\')">&#9999;</button><button class="dbtn" onclick="delCon(\'' +
+          c.id +
+          "')\">&#128465;</button></div></div>"
+        );
+      }
+      function renderConPanel() {
+        if (!D.con.length) {
+          document.getElementById("con-list").innerHTML =
+            '<div class="empty-h">Sin contactos</div>';
+          return;
+        }
+        const emergs = D.con.filter((c) => c.cat === "emergencia"),
+          otros = D.con.filter((c) => c.cat !== "emergencia");
+        let html = "";
+        if (emergs.length)
+          html +=
+            '<div class="emerg-banner"><div class="emerg-title">&#128680; Emergencias</div>' +
+            emergs.map((c) => conItemHTML(c)).join("") +
+            "</div>";
+        html += otros.map((c) => conItemHTML(c)).join("");
+        document.getElementById("con-list").innerHTML = html;
+      }
+
+      /* ========== MESSAGES ========== */
+      let mBg = "#fde68a",
+        mFg = "#92400e";
+      window.selMC = function (el, bg, fg) {
+        document
+          .querySelectorAll(".cdot")
+          .forEach((d) => d.classList.remove("sel"));
+        el.classList.add("sel");
+        mBg = bg;
+        mFg = fg;
+      };
+      function purgeMsgs() {
+        const now = Date.now();
+        D.msg
+          .filter(
+            (m) =>
+              m.exp &&
+              m.ts &&
+              (m.ts.toMillis ? m.ts.toMillis() : m.ts) + m.exp < now,
+          )
+          .forEach((m) => deleteDoc(famDoc("mensajes", m.id)).catch(() => {}));
+      }
+      window.addMsg = async function () {
+        const t = document.getElementById("msg-txt").value.trim();
+        if (!t) return;
+        const exp = +document.getElementById("msg-exp").value || 0;
+        const pin = document.getElementById("msg-pin").checked;
+        try {
+          await addDoc(famCol("mensajes"), {
+            t,
+            bg: mBg,
+            fg: mFg,
+            autor: currentUser,
+            ts: serverTimestamp(),
+            exp: exp || 0,
+            pin: pin,
+            reactions: {},
+          });
+          document.getElementById("msg-txt").value = "";
+          document.getElementById("msg-pin").checked = false;
+          showStatus("Mensaje agregado", "ok");
+        } catch (e) {
+          showStatus("Error: " + e.message, "err");
+        }
+      };
+      window.delMsg = async function (id) {
+        if (!confirm("Eliminar este mensaje?")) return;
+        try {
+          await deleteDoc(famDoc("mensajes", id));
+          showStatus("Mensaje eliminado", "info");
+        } catch (e) {
+          showStatus("Error: " + e.message, "err");
+        }
+      };
+      window.toggleMsgPin = async function (id) {
+        const m = D.msg.find((x) => x.id === id);
+        if (!m) return;
+        try {
+          await setDoc(
+            famDoc("mensajes", id),
+            { ...m, pin: !m.pin },
+            { merge: true },
+          );
+        } catch (e) {
+          showStatus("Error: " + e.message, "err");
+        }
+      };
+      /* Reactions */
+      const REACT_EMOJIS = [
+        "\u{1F44D}",
+        "\u2764\uFE0F",
+        "\u{1F602}",
+        "\u{1F622}",
+        "\u{1F44F}",
+        "\u{1F525}",
+        "\u{1F973}",
+        "\u2705",
+      ];
+      let reactMsgId = null;
+      window.openReactModal = function (id) {
+        reactMsgId = id;
+        const grid = document.getElementById("react-emoji-grid");
+        grid.innerHTML = REACT_EMOJIS.map(
+          (e) =>
+            "<button onclick=\"addReaction('" +
+            e +
+            '\')" style="font-size:26px;background:none;border:1.5px solid #eee;border-radius:10px;padding:8px 12px;cursor:pointer;">' +
+            e +
+            "</button>",
+        ).join("");
+        document.getElementById("react-modal").classList.add("open");
+      };
+      window.closeReactModal = function () {
+        document.getElementById("react-modal").classList.remove("open");
+        reactMsgId = null;
+      };
+      window.addReaction = async function (emoji) {
+        if (!reactMsgId) return;
+        const m = D.msg.find((x) => x.id === reactMsgId);
+        if (!m) return;
+        const reactions = { ...(m.reactions || {}) };
+        reactions[emoji] = (reactions[emoji] || 0) + 1;
+        try {
+          await setDoc(
+            famDoc("mensajes", reactMsgId),
+            { reactions },
+            { merge: true },
+          );
+          closeReactModal();
+        } catch (e) {
+          showStatus("Error", "err");
+        }
+      };
+      function renderMsgPanel() {
+        const pinned = D.msg.filter((m) => m.pin),
+          rest = D.msg.filter((m) => !m.pin);
+        const sorted = [...pinned, ...rest];
+        document.getElementById("msg-wall").innerHTML = sorted.length
+          ? sorted
+              .map((m) => {
+                const reactions = m.reactions || {};
+                const reactHtml = Object.entries(reactions)
+                  .filter(([, v]) => v > 0)
+                  .map(
+                    ([e, v]) =>
+                      '<span class="msg-reaction-chip" onclick="addReaction_direct(\'' +
+                      m.id +
+                      "','" +
+                      e +
+                      "')\">" +
+                      e +
+                      " " +
+                      v +
+                      "</span>",
+                  )
+                  .join("");
+                return (
+                  '<div class="msg-chip' +
+                  (m.pin ? " pinned" : "") +
+                  '" style="background:' +
+                  m.bg +
+                  ";color:" +
+                  m.fg +
+                  '">' +
+                  (m.pin ? '<span class="pin-icon">&#128204;</span>' : "") +
+                  '<span class="msg-chip-txt">' +
+                  m.t +
+                  "</span>" +
+                  (m.autor || m.ts
+                    ? '<span class="msg-chip-meta">' +
+                      (m.autor || "") +
+                      (m.autor && m.ts ? " &middot; " : "") +
+                      (m.ts ? fmtDateTime(m.ts) : "") +
+                      "</span>"
+                    : "") +
+                  (reactHtml
+                    ? '<div class="msg-reactions">' + reactHtml + "</div>"
+                    : "") +
+                  '<div class="msg-chip-actions"><button class="msg-react-btn" onclick="openReactModal(\'' +
+                  m.id +
+                  '\')" title="Reaccionar">&#128515;</button><button class="msg-react-btn" onclick="toggleMsgPin(\'' +
+                  m.id +
+                  '\')" title="Fijar">&#128204;</button><button onclick="delMsg(\'' +
+                  m.id +
+                  '\')" style="background:none;border:none;cursor:pointer;color:' +
+                  m.fg +
+                  ';opacity:.6;font-size:13px;padding:0;margin-left:auto;">&#10005;</button></div></div>'
+                );
+              })
+              .join("")
+          : '<div class="empty-h">Sin mensajes</div>';
+      }
+      window.addReaction_direct = async function (id, emoji) {
+        const m = D.msg.find((x) => x.id === id);
+        if (!m) return;
+        const reactions = { ...(m.reactions || {}) };
+        reactions[emoji] = (reactions[emoji] || 0) + 1;
+        try {
+          await setDoc(famDoc("mensajes", id), { reactions }, { merge: true });
+        } catch {}
+      };
+
+      /* ========== CANVAS MEJORADO ========== */
+      let isDrawing = false,
+        lx = 0,
+        ly = 0,
+        drawTool = "draw",
+        penCol = "#1a1a1a",
+        textCol = "#1a1a1a",
+        shapeCol = "#1a1a1a",
+        shapeType = "rect";
+      let undoStack = [],
+        redoStack = [],
+        shapeStartX = 0,
+        shapeStartY = 0,
+        shapeSnapshot = null;
+      let pCanvas,
+        drawTab = "draw";
+
+      window.setDrawTab = function (tab) {
+        drawTab = tab;
+        ["draw", "text", "shapes", "saved"].forEach((t) => {
+          document
+            .getElementById("dtab-" + t)
+            .classList.toggle("on", t === tab);
+          document.getElementById("draw-panel-" + t).style.display =
+            t === tab ? "block" : "none";
+        });
+        if (tab === "saved") renderDrawingsList();
+        if (tab !== "saved" && !pCtx) setTimeout(initCanvas, 50);
+        if (pCtx) pCanvas.style.cursor = tab === "text" ? "text" : "crosshair";
+      };
+      window.setShape = function (s) {
+        shapeType = s;
+        ["rect", "circ", "line"].forEach((x) =>
+          document
+            .getElementById("tb" + x.charAt(0).toUpperCase() + x.slice(1))
+            .classList.toggle("on", x === s),
+        );
+      };
+      window.setShapeCol = function (el, c) {
+        shapeCol = c;
+        el.closest(".canvas-tools")
+          .querySelectorAll(".pdot")
+          .forEach((d) => d.classList.remove("sel"));
+        el.classList.add("sel");
+      };
+      window.setTextCol = function (el, c) {
+        textCol = c;
+        el.closest(".canvas-tools")
+          .querySelectorAll(".pdot")
+          .forEach((d) => d.classList.remove("sel"));
+        el.classList.add("sel");
+      };
+      function pushUndo() {
+        undoStack.push(pCanvas.toDataURL());
+        if (undoStack.length > 30) undoStack.shift();
+        redoStack = [];
+      }
+      window.undoCanvas = function () {
+        if (!pCtx || undoStack.length === 0) return;
+        redoStack.push(pCanvas.toDataURL());
+        const prev = undoStack.pop();
+        const img = new Image();
+        img.onload = () => {
+          pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+          pCtx.drawImage(img, 0, 0);
+          canvasData = pCanvas.toDataURL();
+        };
+        img.src = prev;
+      };
+      window.redoCanvas = function () {
+        if (!pCtx || redoStack.length === 0) return;
+        undoStack.push(pCanvas.toDataURL());
+        const next = redoStack.pop();
+        const img = new Image();
+        img.onload = () => {
+          pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+          pCtx.drawImage(img, 0, 0);
+          canvasData = pCanvas.toDataURL();
+        };
+        img.src = next;
+      };
+
+      window.initCanvas = function () {
+        if (pCtx) return;
+        pCanvas = document.getElementById("pCanvas");
+        pCtx = pCanvas.getContext("2d");
+        pCtx.lineCap = "round";
+        pCtx.lineJoin = "round";
+        if (canvasData) {
+          const img = new Image();
+          img.onload = () => pCtx.drawImage(img, 0, 0);
+          img.src = canvasData;
+        }
+        function gp(e) {
+          const r = pCanvas.getBoundingClientRect(),
+            sx = pCanvas.width / r.width,
+            sy = pCanvas.height / r.height;
+          return e.touches
+            ? [
+                (e.touches[0].clientX - r.left) * sx,
+                (e.touches[0].clientY - r.top) * sy,
+              ]
+            : [(e.clientX - r.left) * sx, (e.clientY - r.top) * sy];
+        }
+        /* text click */
+        pCanvas.addEventListener("click", function (e) {
+          if (drawTab !== "text") return;
+          const [x, y] = gp(e),
+            txt = document.getElementById("canvas-text-input").value.trim();
+          if (!txt) return;
+          pushUndo();
+          const sz = +document.getElementById("textSz").value;
+          pCtx.font = sz + "px Caveat, cursive";
+          pCtx.fillStyle = textCol;
+          pCtx.fillText(txt, x, y);
+          canvasData = pCanvas.toDataURL();
+        });
+        /* draw/erase */
+        function draw(e) {
+          if (!isDrawing || drawTab !== "draw") return;
+          const [x, y] = gp(e),
+            sz = +document.getElementById("brushSz").value;
+          pCtx.beginPath();
+          pCtx.moveTo(lx, ly);
+          pCtx.lineTo(x, y);
+          pCtx.strokeStyle = drawTool === "erase" ? "#fff" : penCol;
+          pCtx.lineWidth = drawTool === "erase" ? sz * 4 : sz;
+          pCtx.stroke();
+          [lx, ly] = [x, y];
+          canvasData = pCanvas.toDataURL();
+        }
+        /* shape draw */
+        function drawShapePreview(e) {
+          if (!isDrawing || drawTab !== "shapes") return;
+          const [x, y] = gp(e);
+          pCtx.putImageData(shapeSnapshot, 0, 0);
+          const sz = +document.getElementById("shapeSz").value,
+            fill = document.getElementById("shapeFill").checked;
+          pCtx.strokeStyle = shapeCol;
+          pCtx.lineWidth = sz;
+          pCtx.fillStyle = shapeCol;
+          pCtx.beginPath();
+          if (shapeType === "rect") {
+            const w = x - shapeStartX,
+              h = y - shapeStartY;
+            fill
+              ? pCtx.fillRect(shapeStartX, shapeStartY, w, h)
+              : pCtx.strokeRect(shapeStartX, shapeStartY, w, h);
+          } else if (shapeType === "circ") {
+            const rx = Math.abs(x - shapeStartX) / 2,
+              ry = Math.abs(y - shapeStartY) / 2,
+              cx2 = (shapeStartX + x) / 2,
+              cy2 = (shapeStartY + y) / 2;
+            pCtx.ellipse(cx2, cy2, rx, ry, 0, 0, Math.PI * 2);
+            fill ? pCtx.fill() : pCtx.stroke();
+          } else if (shapeType === "line") {
+            pCtx.moveTo(shapeStartX, shapeStartY);
+            pCtx.lineTo(x, y);
+            pCtx.stroke();
+          }
+          canvasData = pCanvas.toDataURL();
+        }
+        pCanvas.addEventListener("mousedown", (e) => {
+          if (drawTab === "text") return;
+          pushUndo();
+          isDrawing = true;
+          const [x, y] = gp(e);
+          [lx, ly] = [x, y];
+          if (drawTab === "shapes") {
+            shapeStartX = x;
+            shapeStartY = y;
+            shapeSnapshot = pCtx.getImageData(
+              0,
+              0,
+              pCanvas.width,
+              pCanvas.height,
+            );
+          }
+        });
+        pCanvas.addEventListener("mousemove", (e) => {
+          if (drawTab === "draw") draw(e);
+          else if (drawTab === "shapes") drawShapePreview(e);
+        });
+        pCanvas.addEventListener("mouseup", () => {
+          isDrawing = false;
+          canvasData = pCanvas.toDataURL();
+        });
+        pCanvas.addEventListener("mouseleave", () => (isDrawing = false));
+        pCanvas.addEventListener(
+          "touchstart",
+          (e) => {
+            if (drawTab === "text") return;
+            e.preventDefault();
+            pushUndo();
+            isDrawing = true;
+            const [x, y] = gp(e);
+            [lx, ly] = [x, y];
+            if (drawTab === "shapes") {
+              shapeStartX = x;
+              shapeStartY = y;
+              shapeSnapshot = pCtx.getImageData(
+                0,
+                0,
+                pCanvas.width,
+                pCanvas.height,
+              );
+            }
+          },
+          { passive: false },
+        );
+        pCanvas.addEventListener(
+          "touchmove",
+          (e) => {
+            e.preventDefault();
+            if (drawTab === "draw") draw(e);
+            else if (drawTab === "shapes") drawShapePreview(e);
+          },
+          { passive: false },
+        );
+        pCanvas.addEventListener("touchend", () => {
+          isDrawing = false;
+          canvasData = pCanvas.toDataURL();
+        });
+      };
+      window.setTool = function (t) {
+        drawTool = t;
+        document.getElementById("tbDraw").classList.toggle("on", t === "draw");
+        document
+          .getElementById("tbErase")
+          .classList.toggle("on", t === "erase");
+      };
+      window.setPen = function (el, c) {
+        penCol = c;
+        document
+          .querySelectorAll("#draw-panel-draw .pdot")
+          .forEach((d) => d.classList.remove("sel"));
+        el.classList.add("sel");
+        setTool("draw");
+      };
+      window.clearCanvas = function () {
+        if (!pCtx) return;
+        pushUndo();
+        pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+        canvasData = null;
+      };
+
+      /* Multiple drawings */
+      window.newDrawing = async function () {
+        const name = prompt("Nombre del dibujo:");
+        if (!name) return;
+        try {
+          const ref = await addDoc(famCol("dibujos"), {
+            name,
+            data: "",
+            ts: serverTimestamp(),
+          });
+          currentDrawId = ref.id;
+          if (pCtx) pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+          canvasData = null;
+          undoStack = [];
+          redoStack = [];
+          showStatus("Nuevo dibujo: " + name, "ok");
+        } catch (e) {
+          showStatus("Error: " + e.message, "err");
+        }
+      };
+      window.saveCurrentCanvas = async function () {
+        if (!canvasData) {
+          showStatus("Dibuja algo primero", "info");
+          return;
+        }
+        try {
+          if (currentDrawId) {
+            await setDoc(
+              famDoc("dibujos", currentDrawId),
+              { data: canvasData, ts: serverTimestamp() },
+              { merge: true },
+            );
+            showStatus("Dibujo guardado", "ok");
+          } else {
+            const name =
+              prompt("Nombre del dibujo:", "Mi dibujo") || "Sin nombre";
+            const ref = await addDoc(famCol("dibujos"), {
+              name,
+              data: canvasData,
+              ts: serverTimestamp(),
+            });
+            currentDrawId = ref.id;
+            showStatus("Dibujo guardado: " + name, "ok");
+          }
+          syncCanvasToPiz();
+        } catch (e) {
+          showStatus("Error: " + e.message, "err");
+        }
+      };
+      window.loadDrawing = function (id) {
+        const d = drawings.find((x) => x.id === id);
+        if (!d) return;
+        currentDrawId = id;
+        canvasData = d.data || null;
+        undoStack = [];
+        redoStack = [];
+        if (pCtx) {
+          pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+          if (canvasData) {
+            const img = new Image();
+            img.onload = () => pCtx.drawImage(img, 0, 0);
+            img.src = canvasData;
+          }
+        }
+        renderDrawingsList();
+        syncCanvasToPiz();
+      };
+      window.deleteDrawing = async function (id) {
+        if (!confirm("Eliminar este dibujo?")) return;
+        try {
+          await deleteDoc(famDoc("dibujos", id));
+          if (currentDrawId === id) {
+            currentDrawId = null;
+            canvasData = null;
+            if (pCtx) pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+          }
+          showStatus("Dibujo eliminado", "info");
+        } catch (e) {
+          showStatus("Error: " + e.message, "err");
+        }
+      };
+      function renderDrawingsList() {
+        const el = document.getElementById("canvas-list");
+        if (!el) return;
+        if (!drawings.length) {
+          el.innerHTML =
+            '<span style="font-size:12px;color:#bbb;">Sin dibujos guardados</span>';
+          return;
+        }
+        el.innerHTML = drawings
+          .map(
+            (d) =>
+              '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">' +
+              (d.data
+                ? '<img class="canvas-thumb' +
+                  (d.id === currentDrawId ? " active" : "") +
+                  '" src="' +
+                  d.data +
+                  '" onclick="loadDrawing(\'' +
+                  d.id +
+                  '\')" title="' +
+                  d.name +
+                  '">'
+                : '<div class="canvas-thumb' +
+                  (d.id === currentDrawId ? " active" : "") +
+                  '" onclick="loadDrawing(\'' +
+                  d.id +
+                  '\')" style="display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;">&#127912;</div>') +
+              '<span style="font-size:9px;color:#888;max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
+              d.name +
+              '</span><button class="dbtn" style="font-size:9px;padding:1px 5px;" onclick="deleteDrawing(\'' +
+              d.id +
+              "')\">&#128465;</button></div>",
+          )
+          .join("");
+      }
+
+      /* ========== PIZARRA VIEW ========== */
+      function renderPizEvents() {
+        const hoy = new Date().toISOString().slice(0, 10);
+        const prox = D.ev.filter((e) => !esPasado(e.f, e.h) || e.f === hoy),
+          pas = D.ev.filter((e) => esPasado(e.f, e.h) && e.f !== hoy);
+        const lista = [...prox, ...pas].slice(0, 7);
+        document.getElementById("piz-events").innerHTML = lista.length
+          ? lista
+              .map((e) => {
+                const esHoy = e.f === hoy,
+                  pasado = esPasado(e.f, e.h) && !esHoy,
+                  col = CAT_COLORS[e.cat || "general"];
+                return (
+                  '<div class="piz-event" style="border-left-color:' +
+                  col.border +
+                  ";background:" +
+                  col.bg +
+                  ";" +
+                  (pasado ? "opacity:.5;" : "") +
+                  (esHoy ? "background:#fffbeb;" : "") +
+                  '"><span class="piz-edate">' +
+                  (esHoy ? "HOY" : fmtD(e.f)) +
+                  " " +
+                  (e.h || "") +
+                  '</span><span class="piz-eact">' +
+                  e.a +
+                  "</span></div>"
+                );
+              })
+              .join("")
+          : '<div class="empty-h">Sin eventos</div>';
+      }
+      function renderPizContacts() {
+        if (!D.con.length) {
+          document.getElementById("piz-contacts").innerHTML =
+            '<div class="empty-h">Sin contactos</div>';
+          return;
+        }
+        const em = D.con.filter((c) => c.cat === "emergencia").slice(0, 3),
+          ot = D.con
+            .filter((c) => c.cat !== "emergencia")
+            .slice(0, 5 - em.length);
+        document.getElementById("piz-contacts").innerHTML = [...em, ...ot]
+          .map((c) => {
+            const ie = c.cat === "emergencia",
+              ini = c.n
+                ? c.n
+                    .split(" ")
+                    .map((w) => w[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2)
+                : "?";
+            return (
+              '<div class="piz-contact' +
+              (ie ? " emerg" : "") +
+              '"><div class="piz-av' +
+              (ie ? " emerg" : "") +
+              '">' +
+              (c.foto
+                ? '<img src="' +
+                  c.foto +
+                  '" onerror="this.style.display=\'none\'">'
+                : ini) +
+              '</div><div><div class="piz-cname">' +
+              (ie ? "&#128680; " : "") +
+              c.n +
+              '</div><a class="piz-ctel" href="tel:' +
+              c.t +
+              '" style="text-decoration:none;">' +
+              c.t +
+              "</a></div></div>"
+            );
+          })
+          .join("");
+      }
+      function renderPizMsgs() {
+        const pinned = D.msg.filter((m) => m.pin),
+          rest = D.msg.filter((m) => !m.pin);
+        document.getElementById("piz-msgs").innerHTML = [...pinned, ...rest]
+          .length
+          ? [...pinned, ...rest]
+              .map(
+                (m) =>
+                  '<div class="piz-msg" style="background:' +
+                  m.bg +
+                  ";color:" +
+                  m.fg +
+                  '">' +
+                  (m.pin ? "&#128204; " : "") +
+                  m.t +
+                  "</div>",
+              )
+              .join("")
+          : '<div class="empty-h">Sin mensajes</div>';
+      }
+      function renderPizarra() {
+        renderPizEvents();
+        renderPizContacts();
+        renderPizMsgs();
+        renderPizDrawings();
+      }
+      function renderPizDrawings() {
+        const el = document.getElementById("piz-drawings");
+        if (!el) return;
+        if (!drawings || !drawings.length) {
+          el.innerHTML = '<div class="empty-h">Sin dibujos</div>';
+          return;
+        }
+        el.innerHTML = drawings
+          .map(
+            (d) => {
+              const safeName = d.name.replace(/'/g, "&#39;");
+              return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;" onclick="openPizDrawModal(\''+d.data+'\',\''+safeName+'\')">' +
+              (d.data
+                ? '<img class="piz-draw-thumb" src="' + d.data + '" title="' + d.name + '">'
+                : '<div class="piz-draw-thumb" style="display:flex;align-items:center;justify-content:center;font-size:22px;">&#127912;</div>') +
+              '<span style="font-size:9px;color:#888;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;">' +
+              d.name +
+              '</span></div>';
+            }
+          )
+          .join("");
+      }
+      window.openPizDrawModal = function(src, name) {
+        document.getElementById("piz-draw-modal-img").src = src || "";
+        document.getElementById("piz-draw-modal-name").textContent = name || "";
+        document.getElementById("piz-draw-modal").classList.add("open");
+      };
+      window.closePizDrawModal = function(e) {
+        if (!e || e.target === document.getElementById("piz-draw-modal")) {
+          document.getElementById("piz-draw-modal").classList.remove("open");
+        }
+      };
+      function syncCanvasToPiz() { renderPizDrawings(); }
+      let clockInt = null;
+      function startClock() {
+        updateClock();
+        clockInt = setInterval(updateClock, 1000);
+      }
+      function stopClock() {
+        clearInterval(clockInt);
+      }
+      function updateClock() {
+        const n = new Date(),
+          dias = ["Dom", "Lun", "Mar", "Mi\u00e9", "Jue", "Vie", "S\u00e1b"],
+          meses = [
+            "ene",
+            "feb",
+            "mar",
+            "abr",
+            "may",
+            "jun",
+            "jul",
+            "ago",
+            "sep",
+            "oct",
+            "nov",
+            "dic",
+          ];
+        const hh = n.getHours().toString().padStart(2, "0"),
+          mm = n.getMinutes().toString().padStart(2, "0");
+        const el = document.getElementById("piz-clock");
+        if (el)
+          el.textContent =
+            dias[n.getDay()] +
+            " " +
+            n.getDate() +
+            " " +
+            meses[n.getMonth()] +
+            " - " +
+            hh +
+            ":" +
+            mm;
+      }
+    </script>
+  </body>
 </html>
