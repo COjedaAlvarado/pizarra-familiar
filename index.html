@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Pizarra Familiar</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:#e8e0d4;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:16px;}
+.app{width:100%;max-width:820px;}
+
+/* STATUS BAR */
+#status-bar{text-align:center;font-size:12px;padding:4px 10px;border-radius:6px;margin-bottom:8px;display:none;}
+#status-bar.ok{background:#bbf7d0;color:#166534;display:block;}
+#status-bar.err{background:#fecaca;color:#991b1b;display:block;}
+#status-bar.info{background:#bfdbfe;color:#1e40af;display:block;}
+
+/* LOGIN */
+.login-wrap{min-height:92vh;display:flex;align-items:center;justify-content:center;background:#f0ebe0;border-radius:14px;}
+.login-box{background:white;border-radius:14px;border:1.5px solid #ddd;padding:36px 30px;width:320px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.08);}
+.login-logo{font-family:'Caveat',cursive;font-size:36px;font-weight:700;color:#2d2d2d;margin-bottom:4px;}
+.login-sub{font-size:13px;color:#999;margin-bottom:28px;}
+.login-inp{width:100%;font-family:'Nunito',sans-serif;font-size:14px;padding:10px 14px;border:1.5px solid #ddd;border-radius:9px;margin-bottom:10px;color:#333;background:#fafafa;}
+.login-inp:focus{outline:none;border-color:#888;}
+.login-btn{width:100%;background:#2d2d2d;color:white;border:none;border-radius:9px;padding:11px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;transition:background .2s;}
+.login-btn:hover{background:#444;}
+.login-err{font-size:12px;color:#e24b4a;margin-top:10px;min-height:18px;}
+
+/* NAV */
+.nav{display:flex;gap:8px;padding:10px 14px;background:#2d2d2d;border-radius:12px 12px 0 0;align-items:center;flex-wrap:wrap;}
+.nav-title{font-family:'Caveat',cursive;font-size:22px;color:#fff;font-weight:700;flex:1;}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;display:inline-block;margin-right:4px;}
+.sync-dot.off{background:#f87171;}
+.nav-btn{font-family:'Nunito',sans-serif;font-size:12px;font-weight:600;padding:5px 13px;border-radius:20px;border:none;cursor:pointer;transition:all .2s;}
+.nav-ctrl{background:transparent;color:#ccc;border:1.5px solid #555;}
+.nav-active{background:#555;color:#fff;border-color:#555 !important;}
+.nav-view{background:#f5f0e8;color:#2d2d2d;}
+.nav-logout{background:transparent;color:#e8a87c;border:1.5px solid #e8a87c;font-size:11px;padding:4px 10px;}
+.nav-logout:hover{background:#e8a87c;color:#2d2d2d;}
+
+/* PANEL */
+.panel{background:#f5f0e8;padding:14px;border-radius:0 0 12px 12px;}
+.ptabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.ptab{font-family:'Caveat',cursive;font-size:17px;padding:5px 16px;border:2px solid #ccc;border-radius:20px;background:white;cursor:pointer;color:#666;transition:all .2s;}
+.ptab.on{background:#2d2d2d;color:white;border-color:#2d2d2d;}
+.psec{display:none;}
+.psec.on{display:block;}
+.board{background:white;border-radius:11px;border:1.5px solid #ddd;padding:16px;}
+.stitle{font-family:'Caveat',cursive;font-size:19px;font-weight:700;color:#444;margin-bottom:12px;border-bottom:2px dashed #e0d8cc;padding-bottom:6px;}
+.inp{font-family:'Nunito',sans-serif;font-size:13px;padding:8px 11px;border:1.5px solid #ddd;border-radius:8px;width:100%;color:#333;background:#fafafa;margin-bottom:7px;}
+.inp:focus{outline:none;border-color:#888;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.abtn{background:#2d2d2d;color:white;border:none;border-radius:8px;padding:9px 16px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:2px;transition:background .2s;}
+.abtn:hover{background:#444;}
+.abtn.cancel{background:#999;}
+.ebtn{background:#e8f0fe;color:#185fa5;border:none;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Nunito',sans-serif;}
+.dbtn{background:#fee2e2;color:#a32d2d;border:none;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Nunito',sans-serif;}
+.item-list{margin-top:12px;display:flex;flex-direction:column;gap:7px;max-height:200px;overflow-y:auto;}
+.p-item{display:flex;align-items:flex-start;gap:8px;padding:8px 11px;background:#f9f6f0;border-radius:8px;font-size:13px;color:#444;}
+.p-item-main{flex:1;line-height:1.5;}
+.p-label{font-family:'Caveat',cursive;font-size:15px;font-weight:700;color:#c0703a;}
+.p-actions{display:flex;gap:5px;flex-shrink:0;align-items:flex-start;padding-top:2px;}
+.cdot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;flex-shrink:0;}
+.cdot.sel{border-color:#333;transform:scale(1.15);}
+.color-row{display:flex;gap:7px;align-items:center;margin-bottom:9px;}
+.msg-chip{font-family:'Caveat',cursive;font-size:17px;padding:6px 11px;border-radius:7px;display:flex;align-items:center;gap:6px;}
+.msg-wall{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;}
+.pdot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
+.pdot.sel{border-color:#333;transform:scale(1.15);}
+.tool-btn{font-family:'Nunito',sans-serif;font-size:12px;padding:5px 11px;border:1.5px solid #ccc;border-radius:6px;cursor:pointer;background:white;color:#555;}
+.tool-btn.on{background:#2d2d2d;color:white;border-color:#2d2d2d;}
+.canvas-tools{display:flex;gap:7px;align-items:center;margin-bottom:9px;flex-wrap:wrap;}
+#pCanvas{border:1.5px solid #ddd;border-radius:9px;cursor:crosshair;touch-action:none;display:block;background:white;max-width:100%;}
+.edit-banner{font-family:'Caveat',cursive;font-size:15px;color:#c0703a;margin-bottom:7px;background:#fff8f0;border-radius:7px;padding:5px 10px;border-left:3px solid #e8a87c;}
+.empty-h{font-size:12px;color:#bbb;font-style:italic;text-align:center;padding:18px 0;}
+
+/* PIZARRA VIEW */
+.pizarra-view{display:none;background:#f0ebe0;border-radius:0 0 12px 12px;padding:14px;}
+.pizarra-view.visible{display:block;}
+.piz-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.piz-clock{font-family:'Caveat',cursive;font-size:17px;color:#888;}
+.fullbtn{background:#f5f0e8;color:#555;border:1.5px solid #ccc;border-radius:7px;font-size:12px;padding:4px 10px;cursor:pointer;font-family:'Nunito',sans-serif;}
+.fullbtn:hover{background:#e0dbd0;}
+.piz-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.piz-card{background:white;border-radius:11px;border:2px solid #ddd;padding:13px;overflow:hidden;}
+.piz-ctitle{font-family:'Caveat',cursive;font-size:18px;font-weight:700;color:#444;border-bottom:2px dashed #e8dfc8;padding-bottom:5px;margin-bottom:9px;}
+.piz-event{display:flex;align-items:baseline;gap:7px;padding:4px 8px;background:#fff8f0;border-radius:6px;border-left:4px solid #e8a87c;margin-bottom:4px;}
+.piz-edate{font-family:'Caveat',cursive;font-size:14px;font-weight:700;color:#c0703a;white-space:nowrap;flex-shrink:0;}
+.piz-eact{font-size:12px;color:#444;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.piz-contact{display:flex;gap:8px;align-items:center;padding:4px 8px;background:#f0f7ff;border-radius:6px;border-left:4px solid #5b9bd5;margin-bottom:4px;}
+.piz-av{width:28px;height:28px;border-radius:50%;background:#d0e8f8;display:flex;align-items:center;justify-content:center;font-family:'Caveat',cursive;font-size:12px;font-weight:700;color:#185fa5;flex-shrink:0;}
+.piz-cname{font-size:12px;font-weight:600;color:#333;}
+.piz-ctel{font-family:'Caveat',cursive;font-size:14px;color:#185fa5;}
+.piz-msgs{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;}
+.piz-msg{font-family:'Caveat',cursive;font-size:17px;padding:5px 10px;border-radius:6px;line-height:1.3;}
+#pizCanvas{border-radius:8px;display:block;max-width:100%;border:1px solid #eee;}
+
+@media(max-width:600px){
+  .piz-grid{grid-template-columns:1fr;}
+  .row2{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="status-bar"></div>
+
+  <!-- LOGIN -->
+  <div class="login-wrap" id="login-screen">
+    <div class="login-box">
+      <div class="login-logo">📋 Mi Pizarra</div>
+      <div class="login-sub">Acceso familiar seguro</div>
+      <input class="login-inp" type="text" id="l-user" placeholder="Usuario" autocomplete="off">
+      <input class="login-inp" type="password" id="l-pass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="login-btn" onclick="doLogin()">Entrar</button>
+      <div class="login-err" id="login-err"></div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="main-app" style="display:none;">
+    <div class="nav">
+      <span class="nav-title">
+        <span class="sync-dot" id="sync-dot"></span>
+        📋 Pizarra Familiar
+      </span>
+      <button class="nav-btn nav-ctrl nav-active" id="btn-ctrl" onclick="switchView('panel')">⚙️ Panel</button>
+      <button class="nav-btn nav-view" id="btn-view" onclick="switchView('pizarra')">👁 Ver pizarra</button>
+      <button class="nav-btn nav-logout" onclick="doLogout()">Salir</button>
+    </div>
+
+    <!-- PANEL -->
+    <div class="panel" id="panel-view">
+      <div class="ptabs">
+        <button class="ptab on" onclick="showPTab('cal',this)">📅 Calendario</button>
+        <button class="ptab" onclick="showPTab('con',this)">📞 Contactos</button>
+        <button class="ptab" onclick="showPTab('msg',this)">💬 Mensajes</button>
+        <button class="ptab" onclick="showPTab('draw',this)">🎨 Dibujo</button>
+      </div>
+
+      <!-- CALENDARIO -->
+      <div class="psec on board" id="psec-cal">
+        <div class="stitle">Recordatorios y eventos</div>
+        <div class="edit-banner" id="cal-banner" style="display:none;">✏️ Editando evento — modifica y guarda</div>
+        <div class="row2">
+          <input class="inp" type="date" id="cal-fecha">
+          <input class="inp" type="time" id="cal-hora" value="10:00">
+        </div>
+        <input class="inp" type="text" id="cal-act" placeholder="Actividad (ej: Cita con el médico)">
+        <div style="display:flex;gap:7px;">
+          <button class="abtn" id="cal-save-btn" onclick="saveEvento()">+ Agregar</button>
+          <button class="abtn cancel" id="cal-cancel-btn" onclick="cancelEdit('cal')" style="display:none;width:auto;padding:9px 14px;">✕</button>
+        </div>
+        <div class="item-list" id="cal-list"></div>
+      </div>
+
+      <!-- CONTACTOS -->
+      <div class="psec board" id="psec-con">
+        <div class="stitle">Números y contactos</div>
+        <div class="edit-banner" id="con-banner" style="display:none;">✏️ Editando contacto</div>
+        <div class="row2">
+          <input class="inp" type="text" id="con-nom" placeholder="Nombre">
+          <input class="inp" type="tel" id="con-tel" placeholder="Teléfono">
+        </div>
+        <input class="inp" type="text" id="con-nota" placeholder="Nota opcional (ej: llamar antes de las 18:00)">
+        <div style="display:flex;gap:7px;">
+          <button class="abtn" id="con-save-btn" onclick="saveContacto()">+ Agregar</button>
+          <button class="abtn cancel" id="con-cancel-btn" onclick="cancelEdit('con')" style="display:none;width:auto;padding:9px 14px;">✕</button>
+        </div>
+        <div class="item-list" id="con-list"></div>
+      </div>
+
+      <!-- MENSAJES -->
+      <div class="psec board" id="psec-msg">
+        <div class="stitle">Mensajes y notas</div>
+        <div class="color-row">
+          <span style="font-size:12px;color:#888;">Color:</span>
+          <div class="cdot sel" style="background:#fde68a" onclick="selMC(this,'#fde68a','#92400e')"></div>
+          <div class="cdot" style="background:#fbcfe8" onclick="selMC(this,'#fbcfe8','#9d174d')"></div>
+          <div class="cdot" style="background:#bbf7d0" onclick="selMC(this,'#bbf7d0','#166534')"></div>
+          <div class="cdot" style="background:#bfdbfe" onclick="selMC(this,'#bfdbfe','#1e40af')"></div>
+          <div class="cdot" style="background:#fecaca" onclick="selMC(this,'#fecaca','#991b1b')"></div>
+        </div>
+        <div style="display:flex;gap:7px;">
+          <input class="inp" style="margin:0;flex:1" id="msg-txt" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter')addMsg()">
+          <button class="abtn" style="width:auto;margin:0;padding:9px 16px;" onclick="addMsg()">+</button>
+        </div>
+        <div class="msg-wall" id="msg-wall"></div>
+      </div>
+
+      <!-- DIBUJO -->
+      <div class="psec board" id="psec-draw">
+        <div class="stitle">Pizarrón libre</div>
+        <div class="canvas-tools">
+          <button class="tool-btn on" id="tbDraw" onclick="setTool('draw')">✏️ Dibujar</button>
+          <button class="tool-btn" id="tbErase" onclick="setTool('erase')">🧹 Borrador</button>
+          <input type="range" style="width:75px" min="2" max="24" value="4" id="brushSz" step="1">
+          <div style="display:flex;gap:5px;">
+            <div class="pdot sel" style="background:#1a1a1a" onclick="setPen(this,'#1a1a1a')"></div>
+            <div class="pdot" style="background:#e24b4a" onclick="setPen(this,'#e24b4a')"></div>
+            <div class="pdot" style="background:#185fa5" onclick="setPen(this,'#185fa5')"></div>
+            <div class="pdot" style="background:#3b6d11" onclick="setPen(this,'#3b6d11')"></div>
+            <div class="pdot" style="background:#d85a30" onclick="setPen(this,'#d85a30')"></div>
+            <div class="pdot" style="background:#993556" onclick="setPen(this,'#993556')"></div>
+          </div>
+          <button class="tool-btn" onclick="clearCanvas()">🗑️ Limpiar</button>
+          <button class="tool-btn" onclick="saveCanvas()" style="background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7;">💾 Guardar dibujo</button>
+        </div>
+        <canvas id="pCanvas" width="740" height="260"></canvas>
+      </div>
+    </div>
+
+    <!-- PIZARRA VIEW -->
+    <div class="pizarra-view" id="pizarra-view">
+      <div class="piz-topbar">
+        <span style="font-size:12px;color:#aaa;font-family:'Nunito',sans-serif;">Solo lectura · sincronizado en tiempo real</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="fullbtn" onclick="goFullscreen()">⛶ Pantalla completa</button>
+          <span class="piz-clock" id="piz-clock"></span>
+        </div>
+      </div>
+      <div class="piz-grid">
+        <div class="piz-card">
+          <div class="piz-ctitle">📅 Eventos</div>
+          <div id="piz-events"><div class="empty-h">Sin eventos aún</div></div>
+        </div>
+        <div class="piz-card">
+          <div class="piz-ctitle">📞 Contactos</div>
+          <div id="piz-contacts"><div class="empty-h">Sin contactos aún</div></div>
+        </div>
+        <div class="piz-card">
+          <div class="piz-ctitle">💬 Mensajes</div>
+          <div class="piz-msgs" id="piz-msgs"><div class="empty-h">Sin mensajes aún</div></div>
+        </div>
+        <div class="piz-card">
+          <div class="piz-ctitle">🎨 Pizarrón</div>
+          <canvas id="pizCanvas" width="340" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, addDoc, setDoc, deleteDoc, onSnapshot, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAwUxXqPfM8-NiZxA3HpxKRu9LXLIZMoMY",
+  authDomain: "mi-pizarra-familiar.firebaseapp.com",
+  projectId: "mi-pizarra-familiar",
+  storageBucket: "mi-pizarra-familiar.firebasestorage.app",
+  messagingSenderId: "761893229587",
+  appId: "1:761893229587:web:99a24ea85dabbdcab1dbe6"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+/* ========== AUTH LOCAL + FIREBASE ANÓNIMA ========== */
+// Usuarios locales — cámbialos a tu gusto
+const USERS = { 'familia':'pizarra123', 'admin':'admin2024' };
+let loggedIn = false;
+
+window.doLogin = async function() {
+  const u = document.getElementById('l-user').value.trim();
+  const p = document.getElementById('l-pass').value;
+  const err = document.getElementById('login-err');
+  const btn = document.querySelector('.login-btn');
+
+  if (!USERS[u] || USERS[u] !== p) {
+    err.textContent = 'Usuario o contraseña incorrectos';
+    document.getElementById('l-pass').value = '';
+    return;
+  }
+
+  // Credenciales locales OK → autenticar anónimamente en Firebase
+  btn.textContent = 'Conectando...';
+  btn.disabled = true;
+  try {
+    await signInAnonymously(auth);
+    loggedIn = true;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    err.textContent = '';
+    initListeners();
+    showStatus('Conectado y autenticado ✓', 'ok');
+    setSyncDot(true);
+  } catch(e) {
+    err.textContent = 'Error de conexión con Firebase: ' + e.message;
+  } finally {
+    btn.textContent = 'Entrar';
+    btn.disabled = false;
+  }
+};
+
+window.doLogout = async function() {
+  loggedIn = false;
+  unsubAll();
+  try { await signOut(auth); } catch {}
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('l-user').value = '';
+  document.getElementById('l-pass').value = '';
+  stopClock();
+  setSyncDot(false);
+};
+
+/* ========== HELPERS ========== */
+function showStatus(msg, type) {
+  const el = document.getElementById('status-bar');
+  el.textContent = msg;
+  el.className = type;
+  setTimeout(() => el.className = '', 3000);
+}
+function setSyncDot(on) {
+  document.getElementById('sync-dot').className = 'sync-dot' + (on ? '' : ' off');
+}
+function fmtD(d) { if (!d) return ''; const [y,m,day] = d.split('-'); return `${day}/${m}`; }
+
+/* ========== NAV ========== */
+window.switchView = function(v) {
+  const isP = v === 'panel';
+  document.getElementById('panel-view').style.display = isP ? 'block' : 'none';
+  document.getElementById('pizarra-view').classList.toggle('visible', !isP);
+  document.getElementById('btn-ctrl').className = 'nav-btn nav-ctrl' + (isP ? ' nav-active' : '');
+  document.getElementById('btn-view').className = 'nav-btn nav-view' + (!isP ? ' nav-active' : '');
+  if (!isP) { renderPizarra(); startClock(); setTimeout(syncCanvasToPiz, 80); }
+  else stopClock();
+};
+
+window.showPTab = function(id, btn) {
+  document.querySelectorAll('.psec').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.ptab').forEach(b => b.classList.remove('on'));
+  document.getElementById('psec-' + id).classList.add('on');
+  btn.classList.add('on');
+  if (id === 'draw') setTimeout(initCanvas, 50);
+};
+
+window.goFullscreen = function() {
+  const el = document.getElementById('pizarra-view');
+  if (el.requestFullscreen) el.requestFullscreen();
+  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+};
+
+/* ========== FIRESTORE LISTENERS ========== */
+let unsubs = [];
+let D = { ev: [], con: [], msg: [], canvas: null };
+
+function unsubAll() { unsubs.forEach(u => u()); unsubs = []; }
+
+function initListeners() {
+  // Eventos
+  unsubs.push(onSnapshot(query(collection(db,'eventos'), orderBy('ts','desc')), snap => {
+    D.ev = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderCalPanel();
+    renderPizEvents();
+  }, () => setSyncDot(false)));
+
+  // Contactos
+  unsubs.push(onSnapshot(query(collection(db,'contactos'), orderBy('ts','desc')), snap => {
+    D.con = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderConPanel();
+    renderPizContacts();
+  }, () => setSyncDot(false)));
+
+  // Mensajes
+  unsubs.push(onSnapshot(query(collection(db,'mensajes'), orderBy('ts','asc')), snap => {
+    D.msg = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderMsgPanel();
+    renderPizMsgs();
+  }, () => setSyncDot(false)));
+
+  // Canvas
+  unsubs.push(onSnapshot(doc(db,'canvas','dibujo'), snap => {
+    if (snap.exists()) {
+      canvasData = snap.data().data || null;
+      if (canvasData && pCtx) {
+        const img = new Image();
+        img.onload = () => { pCtx.clearRect(0,0,pCanvas.width,pCanvas.height); pCtx.drawImage(img,0,0); };
+        img.src = canvasData;
+      }
+      syncCanvasToPiz();
+    }
+  }));
+}
+
+/* ========== EVENTOS ========== */
+let calEditId = null;
+
+window.saveEvento = async function() {
+  const f = document.getElementById('cal-fecha').value;
+  const h = document.getElementById('cal-hora').value;
+  const a = document.getElementById('cal-act').value.trim();
+  if (!a) return;
+  try {
+    if (calEditId) {
+      await setDoc(doc(db,'eventos', calEditId), { f, h, a, ts: serverTimestamp() });
+      showStatus('Evento actualizado ✓', 'ok');
+      cancelEdit('cal');
+    } else {
+      await addDoc(collection(db,'eventos'), { f, h, a, ts: serverTimestamp() });
+      showStatus('Evento agregado ✓', 'ok');
+    }
+    document.getElementById('cal-act').value = '';
+    document.getElementById('cal-fecha').value = '';
+  } catch(e) { showStatus('Error al guardar: ' + e.message, 'err'); }
+};
+
+window.editEv = function(id) {
+  const e = D.ev.find(x => x.id === id); if (!e) return;
+  calEditId = id;
+  document.getElementById('cal-fecha').value = e.f || '';
+  document.getElementById('cal-hora').value = e.h || '10:00';
+  document.getElementById('cal-act').value = e.a || '';
+  document.getElementById('cal-banner').style.display = 'block';
+  document.getElementById('cal-save-btn').textContent = '💾 Guardar';
+  document.getElementById('cal-cancel-btn').style.display = 'inline-block';
+  document.getElementById('cal-act').focus();
+};
+
+window.delEv = async function(id) {
+  if (!confirm('¿Eliminar este evento?')) return;
+  try { await deleteDoc(doc(db,'eventos', id)); showStatus('Evento eliminado', 'info'); }
+  catch(e) { showStatus('Error: ' + e.message, 'err'); }
+};
+
+window.cancelEdit = function(t) {
+  if (t === 'cal') {
+    calEditId = null;
+    document.getElementById('cal-act').value = '';
+    document.getElementById('cal-fecha').value = '';
+    document.getElementById('cal-banner').style.display = 'none';
+    document.getElementById('cal-save-btn').textContent = '+ Agregar';
+    document.getElementById('cal-cancel-btn').style.display = 'none';
+  }
+  if (t === 'con') {
+    conEditId = null;
+    document.getElementById('con-nom').value = '';
+    document.getElementById('con-tel').value = '';
+    document.getElementById('con-nota').value = '';
+    document.getElementById('con-banner').style.display = 'none';
+    document.getElementById('con-save-btn').textContent = '+ Agregar';
+    document.getElementById('con-cancel-btn').style.display = 'none';
+  }
+};
+
+function renderCalPanel() {
+  document.getElementById('cal-list').innerHTML = D.ev.length
+    ? D.ev.map(e => `
+      <div class="p-item">
+        <div class="p-item-main"><span class="p-label">${fmtD(e.f)} ${e.h||''}</span> — ${e.a}</div>
+        <div class="p-actions">
+          <button class="ebtn" onclick="editEv('${e.id}')">✏️ Editar</button>
+          <button class="dbtn" onclick="delEv('${e.id}')">🗑️</button>
+        </div>
+      </div>`).join('')
+    : '<div class="empty-h">Sin eventos</div>';
+}
+
+/* ========== CONTACTOS ========== */
+let conEditId = null;
+
+window.saveContacto = async function() {
+  const n = document.getElementById('con-nom').value.trim();
+  const t = document.getElementById('con-tel').value.trim();
+  if (!n && !t) return;
+  const nota = document.getElementById('con-nota').value.trim();
+  try {
+    if (conEditId) {
+      await setDoc(doc(db,'contactos', conEditId), { n, t, nota, ts: serverTimestamp() });
+      showStatus('Contacto actualizado ✓', 'ok');
+      cancelEdit('con');
+    } else {
+      await addDoc(collection(db,'contactos'), { n, t, nota, ts: serverTimestamp() });
+      showStatus('Contacto agregado ✓', 'ok');
+    }
+    document.getElementById('con-nom').value = '';
+    document.getElementById('con-tel').value = '';
+    document.getElementById('con-nota').value = '';
+  } catch(e) { showStatus('Error: ' + e.message, 'err'); }
+};
+
+window.editCon = function(id) {
+  const c = D.con.find(x => x.id === id); if (!c) return;
+  conEditId = id;
+  document.getElementById('con-nom').value = c.n || '';
+  document.getElementById('con-tel').value = c.t || '';
+  document.getElementById('con-nota').value = c.nota || '';
+  document.getElementById('con-banner').style.display = 'block';
+  document.getElementById('con-save-btn').textContent = '💾 Guardar';
+  document.getElementById('con-cancel-btn').style.display = 'inline-block';
+  document.getElementById('con-nom').focus();
+};
+
+window.delCon = async function(id) {
+  if (!confirm('¿Eliminar este contacto?')) return;
+  try { await deleteDoc(doc(db,'contactos', id)); showStatus('Contacto eliminado', 'info'); }
+  catch(e) { showStatus('Error: ' + e.message, 'err'); }
+};
+
+function renderConPanel() {
+  document.getElementById('con-list').innerHTML = D.con.length
+    ? D.con.map(c => `
+      <div class="p-item">
+        <div class="p-item-main">
+          <span class="p-label">${c.n}</span> · ${c.t}
+          ${c.nota ? `<br><span style="font-size:11px;color:#999">${c.nota}</span>` : ''}
+        </div>
+        <div class="p-actions">
+          <button class="ebtn" onclick="editCon('${c.id}')">✏️ Editar</button>
+          <button class="dbtn" onclick="delCon('${c.id}')">🗑️</button>
+        </div>
+      </div>`).join('')
+    : '<div class="empty-h">Sin contactos</div>';
+}
+
+/* ========== MENSAJES ========== */
+let mBg = '#fde68a', mFg = '#92400e';
+
+window.selMC = function(el, bg, fg) {
+  document.querySelectorAll('.cdot').forEach(d => d.classList.remove('sel'));
+  el.classList.add('sel'); mBg = bg; mFg = fg;
+};
+
+window.addMsg = async function() {
+  const t = document.getElementById('msg-txt').value.trim(); if (!t) return;
+  try {
+    await addDoc(collection(db,'mensajes'), { t, bg: mBg, fg: mFg, ts: serverTimestamp() });
+    document.getElementById('msg-txt').value = '';
+    showStatus('Mensaje agregado ✓', 'ok');
+  } catch(e) { showStatus('Error: ' + e.message, 'err'); }
+};
+
+window.delMsg = async function(id) {
+  if (!confirm('¿Eliminar este mensaje?')) return;
+  try { await deleteDoc(doc(db,'mensajes', id)); showStatus('Mensaje eliminado', 'info'); }
+  catch(e) { showStatus('Error: ' + e.message, 'err'); }
+};
+
+function renderMsgPanel() {
+  document.getElementById('msg-wall').innerHTML = D.msg.length
+    ? D.msg.map(m => `
+      <div class="msg-chip" style="background:${m.bg};color:${m.fg}">
+        ${m.t}
+        <button onclick="delMsg('${m.id}')" style="background:none;border:none;cursor:pointer;color:${m.fg};opacity:.6;font-size:13px;padding:0 2px;">✕</button>
+      </div>`).join('')
+    : '<div class="empty-h">Sin mensajes</div>';
+}
+
+/* ========== CANVAS ========== */
+let pCanvas, pCtx, canvasData = null;
+let isDrawing = false, lx = 0, ly = 0;
+let drawTool = 'draw', penCol = '#1a1a1a';
+
+window.initCanvas = function() {
+  if (pCtx) return;
+  pCanvas = document.getElementById('pCanvas');
+  pCtx = pCanvas.getContext('2d');
+  pCtx.lineCap = 'round'; pCtx.lineJoin = 'round';
+  if (canvasData) { const img = new Image(); img.onload = () => pCtx.drawImage(img,0,0); img.src = canvasData; }
+
+  function gp(e) {
+    const r = pCanvas.getBoundingClientRect(), sx = pCanvas.width/r.width, sy = pCanvas.height/r.height;
+    return e.touches ? [(e.touches[0].clientX-r.left)*sx,(e.touches[0].clientY-r.top)*sy] : [(e.clientX-r.left)*sx,(e.clientY-r.top)*sy];
+  }
+  function draw(e) {
+    if (!isDrawing) return;
+    const [x,y] = gp(e), sz = +document.getElementById('brushSz').value;
+    pCtx.beginPath(); pCtx.moveTo(lx,ly); pCtx.lineTo(x,y);
+    pCtx.strokeStyle = drawTool === 'erase' ? '#fff' : penCol;
+    pCtx.lineWidth = drawTool === 'erase' ? sz*4 : sz;
+    pCtx.stroke(); [lx,ly] = [x,y];
+    canvasData = pCanvas.toDataURL();
+  }
+  pCanvas.addEventListener('mousedown', e => { isDrawing=true; [lx,ly]=gp(e); });
+  pCanvas.addEventListener('mousemove', draw);
+  pCanvas.addEventListener('mouseup', () => isDrawing=false);
+  pCanvas.addEventListener('mouseleave', () => isDrawing=false);
+  pCanvas.addEventListener('touchstart', e => { e.preventDefault(); isDrawing=true; [lx,ly]=gp(e); }, {passive:false});
+  pCanvas.addEventListener('touchmove', e => { e.preventDefault(); draw(e); }, {passive:false});
+  pCanvas.addEventListener('touchend', () => isDrawing=false);
+};
+
+window.setTool = function(t) {
+  drawTool = t;
+  document.getElementById('tbDraw').classList.toggle('on', t==='draw');
+  document.getElementById('tbErase').classList.toggle('on', t==='erase');
+};
+window.setPen = function(el, c) {
+  penCol = c;
+  document.querySelectorAll('.pdot').forEach(d => d.classList.remove('sel'));
+  el.classList.add('sel'); setTool('draw');
+};
+window.clearCanvas = function() {
+  if (!pCtx) return;
+  pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
+  canvasData = null;
+};
+window.saveCanvas = async function() {
+  if (!canvasData) { showStatus('Dibuja algo primero', 'info'); return; }
+  try {
+    await setDoc(doc(db,'canvas','dibujo'), { data: canvasData, ts: serverTimestamp() });
+    showStatus('Dibujo guardado en la nube ✓', 'ok');
+  } catch(e) { showStatus('Error guardando dibujo: ' + e.message, 'err'); }
+};
+
+/* ========== PIZARRA RENDER ========== */
+function renderPizEvents() {
+  document.getElementById('piz-events').innerHTML = D.ev.length
+    ? D.ev.slice(0,7).map(e => `
+      <div class="piz-event">
+        <span class="piz-edate">${fmtD(e.f)} ${e.h||''}</span>
+        <span class="piz-eact">${e.a}</span>
+      </div>`).join('')
+    : '<div class="empty-h">Sin eventos aún</div>';
+}
+function renderPizContacts() {
+  document.getElementById('piz-contacts').innerHTML = D.con.length
+    ? D.con.slice(0,5).map(c => {
+        const ini = c.n ? c.n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) : '?';
+        return `<div class="piz-contact">
+          <div class="piz-av">${ini}</div>
+          <div><div class="piz-cname">${c.n}</div><div class="piz-ctel">${c.t}</div></div>
+        </div>`;
+      }).join('')
+    : '<div class="empty-h">Sin contactos aún</div>';
+}
+function renderPizMsgs() {
+  document.getElementById('piz-msgs').innerHTML = D.msg.length
+    ? D.msg.map(m => `<div class="piz-msg" style="background:${m.bg};color:${m.fg}">${m.t}</div>`).join('')
+    : '<div class="empty-h">Sin mensajes aún</div>';
+}
+function renderPizarra() { renderPizEvents(); renderPizContacts(); renderPizMsgs(); }
+
+function syncCanvasToPiz() {
+  const pc = document.getElementById('pizCanvas');
+  if (!pc) return;
+  const cx = pc.getContext('2d');
+  cx.clearRect(0,0,pc.width,pc.height);
+  if (canvasData) { const img = new Image(); img.onload = () => cx.drawImage(img,0,0,pc.width,pc.height); img.src = canvasData; }
+}
+
+/* ========== RELOJ ========== */
+let clockInt = null;
+function startClock() { updateClock(); clockInt = setInterval(updateClock, 1000); }
+function stopClock() { clearInterval(clockInt); }
+function updateClock() {
+  const n = new Date();
+  const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const hh = n.getHours().toString().padStart(2,'0');
+  const mm = n.getMinutes().toString().padStart(2,'0');
+  const el = document.getElementById('piz-clock');
+  if (el) el.textContent = `${dias[n.getDay()]} ${n.getDate()} ${meses[n.getMonth()]} · ${hh}:${mm}`;
+}
+
+</script>
+</body>
+</html>
