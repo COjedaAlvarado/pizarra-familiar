@@ -1290,7 +1290,7 @@
           <p style="font-size: 13px; color: #666; margin-bottom: 16px">
             La aplicaci&#243;n se bloque&#243; por inactividad.
           </p>
-          <button class="abtn" onclick="unlockSession()">Desbloquear</button>
+          <button class="abtn" onclick="unlockSession()">Volver al inicio</button>
         </div>
       </div>
 
@@ -2158,7 +2158,7 @@
       }
       window.unlockSession = function () {
         document.getElementById("inact-overlay").classList.remove("open");
-        resetInact();
+        doLogout();
       };
       ["click", "keydown", "mousemove", "touchstart"].forEach((ev) =>
         document.addEventListener(ev, resetInact, { passive: true }),
@@ -2186,16 +2186,14 @@
         pinMode = "unlock",
         pinFamId = null;
       window.tryShowPin = function () {
-        const flag = localStorage.getItem("piz_pin_flag_" + selectedFamLogin);
-        if (!flag) {
-          showStatus("No hay PIN configurado para esta familia", "info");
+        if (!selectedFamLogin) {
+          showStatus("Selecciona tu familia primero", "info");
           return;
         }
         pinMode = "unlock";
         pinFamId = selectedFamLogin;
         document.getElementById("pin-sub").textContent = "Ingresa tu PIN";
-        document.getElementById("pin-display").textContent =
-          "\u00b7\u00b7\u00b7\u00b7";
+        document.getElementById("pin-display").textContent = "\u00b7\u00b7\u00b7\u00b7";
         document.getElementById("pin-err").textContent = "";
         pinBuffer = "";
         document.getElementById("login-screen").style.display = "none";
@@ -2231,20 +2229,30 @@
           await signInAnonymously(auth);
           const pinDoc = await getDoc(doc(db, "familias", fam, "config", "pin"));
           const storedPin = pinDoc.exists() ? pinDoc.data().value : null;
-          if (storedPin && pinBuffer === storedPin) {
+          if (!storedPin) {
+            await signOut(auth);
+            document.getElementById("pin-err").textContent = "No hay PIN configurado. Usa usuario y contrase\u00f1a.";
+            pinBuffer = "";
+            document.getElementById("pin-display").textContent = "\u00b7\u00b7\u00b7\u00b7";
+          } else if (pinBuffer === storedPin) {
             document.getElementById("pin-screen").style.display = "none";
-            currentFamId = fam;
-            currentUser = "pin";
-            isAdmin = false;
+            const isAdminPin = fam === "admin";
+            currentFamId = isAdminPin ? "ojeda-alvarado" : fam;
+            currentUser = isAdminPin ? ADMIN_USER : "pin";
+            isAdmin = isAdminPin;
             loggedIn = true;
             document.getElementById("main-app").style.display = "block";
             updateNavFam();
+            if (isAdmin) {
+              document.getElementById("admin-bar").style.display = "flex";
+              document.getElementById("admin-fam-sel").value = currentFamId;
+            }
             initListeners();
-            showStatus("Acceso con PIN - " + FAM_NAMES[fam], "ok");
+            showStatus("Acceso con PIN - " + (isAdminPin ? "Admin" : FAM_NAMES[fam]), "ok");
             setSyncDot(true);
             resetInact();
-            logAccess(fam, "pin");
-          } else {
+            logAccess(currentFamId, "pin");
+          } else if (storedPin) {
             await signOut(auth);
             document.getElementById("pin-err").textContent = "PIN incorrecto";
             pinBuffer = "";
@@ -2263,9 +2271,11 @@
         if (!/^\d{4}$/.test(p1)) { statusEl.textContent = "El PIN debe tener exactamente 4 d\u00edgitos"; return; }
         if (p1 !== p2) { statusEl.textContent = "Los PINes no coinciden"; return; }
         statusEl.textContent = "Guardando...";
+        const pinFamStore = isAdmin ? "admin" : currentFamId;
         try {
-          await setDoc(doc(db, "familias", currentFamId, "config", "pin"), { value: p1, ts: serverTimestamp() });
-          localStorage.setItem("piz_pin_flag_" + currentFamId, "1");
+          await signInAnonymously(auth);
+          await setDoc(doc(db, "familias", pinFamStore, "config", "pin"), { value: p1, ts: serverTimestamp() });
+          localStorage.setItem("piz_pin_flag_" + pinFamStore, "1");
           statusEl.textContent = "\u2705 PIN guardado";
           document.getElementById("sec-pin-new").value = "";
           document.getElementById("sec-pin-new2").value = "";
@@ -2274,9 +2284,11 @@
         }
       };
       window.clearPIN = async function () {
+        const pinFamStore = isAdmin ? "admin" : currentFamId;
         try {
-          await deleteDoc(doc(db, "familias", currentFamId, "config", "pin"));
-          localStorage.removeItem("piz_pin_flag_" + currentFamId);
+          await signInAnonymously(auth);
+          await deleteDoc(doc(db, "familias", pinFamStore, "config", "pin"));
+          localStorage.removeItem("piz_pin_flag_" + pinFamStore);
           document.getElementById("sec-pin-status").textContent = "PIN eliminado";
         } catch (e) {
           document.getElementById("sec-pin-status").textContent = "Error: " + e.message;
@@ -2345,20 +2357,22 @@
           n2 = document.getElementById("sec-pass-new2").value;
         if (!old || !n1 || !n2) { showStatus("Completa todos los campos", "err"); return; }
         if (currentUser === "pin") { showStatus("Inicia sesi\u00f3n con usuario/contrase\u00f1a para cambiar la clave", "err"); return; }
+        const storeFamId = isAdmin ? "admin" : currentFamId;
         /* Verify current password: check Firestore override first, then defaults */
         let currentPass;
         try {
-          const credsDoc = await getDoc(doc(db, "familias", currentFamId, "config", "credenciales"));
+          const credsDoc = await getDoc(doc(db, "familias", storeFamId, "config", "credenciales"));
           currentPass = credsDoc.exists() && credsDoc.data()[currentUser] !== undefined
             ? credsDoc.data()[currentUser]
-            : (USUARIOS[currentFamId] || {})[currentUser];
-        } catch { currentPass = (USUARIOS[currentFamId] || {})[currentUser]; }
+            : (isAdmin ? ADMIN_PASS : (USUARIOS[currentFamId] || {})[currentUser]);
+        } catch { currentPass = isAdmin ? ADMIN_PASS : (USUARIOS[currentFamId] || {})[currentUser]; }
         if (old !== currentPass) { showStatus("Contrase\u00f1a actual incorrecta", "err"); return; }
         if (n1 !== n2) { showStatus("Las nuevas contrase\u00f1as no coinciden", "err"); return; }
         if (n1.length < 4) { showStatus("La contrase\u00f1a debe tener al menos 4 caracteres", "err"); return; }
         try {
-          await setDoc(doc(db, "familias", currentFamId, "config", "credenciales"), { [currentUser]: n1 }, { merge: true });
-          if (USUARIOS[currentFamId]) USUARIOS[currentFamId][currentUser] = n1;
+          await signInAnonymously(auth);
+          await setDoc(doc(db, "familias", storeFamId, "config", "credenciales"), { [currentUser]: n1 }, { merge: true });
+          if (!isAdmin && USUARIOS[currentFamId]) USUARIOS[currentFamId][currentUser] = n1;
           document.getElementById("sec-pass-old").value = "";
           document.getElementById("sec-pass-new").value = "";
           document.getElementById("sec-pass-new2").value = "";
@@ -2382,22 +2396,21 @@
         document.getElementById("l-user").style.display = "none";
         document.getElementById("l-user-badge-text").textContent = famUser;
         document.getElementById("l-user-badge").style.display = "flex";
-        /* PIN link */
-        const hasPINFlag = !!localStorage.getItem("piz_pin_flag_" + famId);
-        document.getElementById("pin-link").style.display = hasPINFlag ? "block" : "none";
+        /* PIN link: siempre visible al seleccionar familia (la validación real es en Firestore) */
+        document.getElementById("pin-link").style.display = "block";
         /* Ocultar link admin y enfocar contraseña */
         document.getElementById("admin-link").style.display = "none";
         document.getElementById("l-pass").focus();
       };
       window.selAdmin = function () {
-        selectedFamLogin = null;
+        selectedFamLogin = "admin";
         document.querySelectorAll(".fam-btn").forEach((b) => b.classList.remove("selected"));
         document.getElementById("login-err").textContent = "";
         document.getElementById("l-user").value = "admin";
         document.getElementById("l-user").style.display = "none";
         document.getElementById("l-user-badge-text").textContent = "admin";
         document.getElementById("l-user-badge").style.display = "flex";
-        document.getElementById("pin-link").style.display = "none";
+        document.getElementById("pin-link").style.display = "block";
         document.getElementById("admin-link").style.display = "none";
         document.getElementById("l-pass").focus();
       };
@@ -2418,14 +2431,7 @@
         const err = document.getElementById("login-err"),
           btn = document.querySelector(".login-btn");
         /* Basic pre-checks before hitting Firestore */
-        if (u === ADMIN_USER) {
-          /* Admin uses fixed password only */
-          if (p !== ADMIN_PASS) {
-            err.textContent = "Contrase\u00f1a incorrecta";
-            document.getElementById("l-pass").value = "";
-            return;
-          }
-        } else {
+        if (u !== ADMIN_USER) {
           if (!selectedFamLogin) { err.textContent = "Selecciona tu familia primero"; return; }
           if (!USUARIOS[selectedFamLogin] || !USUARIOS[selectedFamLogin][u]) {
             err.textContent = "Usuario no encontrado";
@@ -2441,7 +2447,15 @@
           await signInAnonymously(auth);
           /* Validate password: check Firestore override, then fall back to defaults */
           let validPass = true;
-          if (u !== ADMIN_USER) {
+          if (u === ADMIN_USER) {
+            let expectedAdminPass = ADMIN_PASS;
+            try {
+              const credsDoc = await getDoc(doc(db, "familias", "admin", "config", "credenciales"));
+              if (credsDoc.exists() && credsDoc.data()[ADMIN_USER] !== undefined)
+                expectedAdminPass = credsDoc.data()[ADMIN_USER];
+            } catch {}
+            validPass = p === expectedAdminPass;
+          } else {
             let expectedPass;
             try {
               const credsDoc = await getDoc(doc(db, "familias", selectedFamLogin, "config", "credenciales"));
