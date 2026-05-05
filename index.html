@@ -354,9 +354,15 @@ let D = { ev: [], con: [], msg: [], canvas: null };
 function unsubAll() { unsubs.forEach(u => u()); unsubs = []; }
 
 function initListeners() {
-  // Eventos
-  unsubs.push(onSnapshot(query(collection(db,'eventos'), orderBy('ts','desc')), snap => {
-    D.ev = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  // Eventos — ordenados localmente por fecha+hora ascendente
+  unsubs.push(onSnapshot(query(collection(db,'eventos'), orderBy('ts','asc')), snap => {
+    D.ev = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => {
+        const ka = (a.f || '9999-12-31') + 'T' + (a.h || '00:00');
+        const kb = (b.f || '9999-12-31') + 'T' + (b.h || '00:00');
+        return ka.localeCompare(kb);
+      });
     renderCalPanel();
     renderPizEvents();
   }, () => setSyncDot(false)));
@@ -449,17 +455,38 @@ window.cancelEdit = function(t) {
   }
 };
 
+function esPasado(f, h) {
+  if (!f) return false;
+  const ahora = new Date();
+  const fechaEvento = new Date((f + 'T' + (h || '23:59')));
+  return fechaEvento < ahora;
+}
+
 function renderCalPanel() {
-  document.getElementById('cal-list').innerHTML = D.ev.length
-    ? D.ev.map(e => `
-      <div class="p-item">
-        <div class="p-item-main"><span class="p-label">${fmtD(e.f)} ${e.h||''}</span> — ${e.a}</div>
+  if (!D.ev.length) {
+    document.getElementById('cal-list').innerHTML = '<div class="empty-h">Sin eventos</div>';
+    return;
+  }
+  const hoy = new Date().toISOString().slice(0,10);
+  document.getElementById('cal-list').innerHTML = D.ev.map(e => {
+    const pasado = esPasado(e.f, e.h);
+    const esHoy = e.f === hoy;
+    const badge = esHoy
+      ? '<span style="background:#fde68a;color:#92400e;font-size:10px;padding:1px 6px;border-radius:10px;font-family:Nunito,sans-serif;font-weight:700;">HOY</span> '
+      : pasado
+        ? '<span style="background:#f3f4f6;color:#9ca3af;font-size:10px;padding:1px 6px;border-radius:10px;font-family:Nunito,sans-serif;">pasado</span> '
+        : '';
+    return `
+      <div class="p-item" style="${pasado && !esHoy ? 'opacity:.55;' : ''}">
+        <div class="p-item-main">
+          ${badge}<span class="p-label">${fmtD(e.f)} ${e.h||''}</span> — ${e.a}
+        </div>
         <div class="p-actions">
           <button class="ebtn" onclick="editEv('${e.id}')">✏️ Editar</button>
           <button class="dbtn" onclick="delEv('${e.id}')">🗑️</button>
         </div>
-      </div>`).join('')
-    : '<div class="empty-h">Sin eventos</div>';
+      </div>`;
+  }).join('');
 }
 
 /* ========== CONTACTOS ========== */
@@ -611,12 +638,20 @@ window.saveCanvas = async function() {
 
 /* ========== PIZARRA RENDER ========== */
 function renderPizEvents() {
-  document.getElementById('piz-events').innerHTML = D.ev.length
-    ? D.ev.slice(0,7).map(e => `
-      <div class="piz-event">
-        <span class="piz-edate">${fmtD(e.f)} ${e.h||''}</span>
-        <span class="piz-eact">${e.a}</span>
-      </div>`).join('')
+  const hoy = new Date().toISOString().slice(0,10);
+  // Mostrar primero los próximos, luego los pasados si no hay suficientes
+  const proximos = D.ev.filter(e => !esPasado(e.f, e.h) || e.f === hoy);
+  const pasados  = D.ev.filter(e => esPasado(e.f, e.h) && e.f !== hoy);
+  const lista = [...proximos, ...pasados].slice(0, 7);
+  document.getElementById('piz-events').innerHTML = lista.length
+    ? lista.map(e => {
+        const esHoy = e.f === hoy;
+        const pasado = esPasado(e.f, e.h) && !esHoy;
+        return `<div class="piz-event" style="${pasado ? 'opacity:.5;' : ''}${esHoy ? 'border-left-color:#f59e0b;background:#fffbeb;' : ''}">
+          <span class="piz-edate">${esHoy ? '⭐ HOY' : fmtD(e.f)} ${e.h||''}</span>
+          <span class="piz-eact">${e.a}</span>
+        </div>`;
+      }).join('')
     : '<div class="empty-h">Sin eventos aún</div>';
 }
 function renderPizContacts() {
