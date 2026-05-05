@@ -2041,7 +2041,7 @@
             </div>
             <div class="piz-card">
               <div class="piz-ctitle">&#128222; Contactos</div>
-              <div id="piz-contacts">
+              <div id="piz-contacts" style="max-height:240px;overflow-y:auto;">
                 <div class="empty-h">Sin contactos</div>
               </div>
             </div>
@@ -2719,7 +2719,9 @@
         el.classList.add("sel");
       };
       let calViewMode = "lista",
-        calMonthDate = new Date();
+        calMonthDate = new Date(),
+        showPastEvents = false,
+        showPastEventsPiz = false;
       window.setCalView = function (mode) {
         calViewMode = mode;
         document
@@ -2943,52 +2945,74 @@
         if (!f) return false;
         return new Date(f + "T" + (h || "23:59")) < new Date();
       }
+      window.togglePastEvents = function () {
+        showPastEvents = !showPastEvents;
+        renderCalPanel();
+      };
+      function evItemHTML(e, hoy) {
+        const pasado = esPasado(e.f, e.h),
+          esHoy = e.f === hoy,
+          col = CAT_COLORS[e.cat || "general"];
+        const badge = esHoy
+          ? '<span style="background:#fde68a;color:#92400e;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:700;">HOY</span> '
+          : pasado
+            ? '<span style="background:#f3f4f6;color:#9ca3af;font-size:10px;padding:1px 6px;border-radius:10px;">pasado</span> '
+            : "";
+        const recLabel = e.recurrente
+          ? '<span style="font-size:10px;color:#888;margin-left:4px;">' +
+            e.recurrente +
+            "</span>"
+          : "";
+        return (
+          '<div class="p-item" style="background:' +
+          col.bg +
+          ";border-left:3px solid " +
+          col.border +
+          ";" +
+          (pasado && !esHoy ? "opacity:.55;" : "") +
+          '"><div class="p-item-main">' +
+          badge +
+          '<span class="p-label">' +
+          fmtD(e.f) +
+          " " +
+          (e.h || "") +
+          "</span> &mdash; " +
+          e.a +
+          recLabel +
+          '</div><div class="p-actions"><button class="ebtn" onclick="editEv(\'' +
+          e.id +
+          '\')">&#9999;</button><button class="dbtn" onclick="delEv(\'' +
+          e.id +
+          "')\">&#128465;</button></div></div>"
+        );
+      }
       function renderCalPanel() {
-        if (!D.ev.length) {
+        const hoy = new Date().toISOString().slice(0, 10);
+        const futuros = D.ev.filter((e) => !esPasado(e.f, e.h));
+        const pasados = D.ev.filter((e) => esPasado(e.f, e.h));
+        const toggleBtn = pasados.length
+          ? '<div style="text-align:center;margin-top:8px;">' +
+            '<button onclick="togglePastEvents()" style="font-family:Nunito,sans-serif;font-size:11px;padding:5px 14px;border-radius:14px;border:1.5px solid #ddd;background:white;color:#888;cursor:pointer;">' +
+            (showPastEvents
+              ? "&#9650; Ocultar pasados"
+              : "&#9660; Ver pasados (" + pasados.length + ")") +
+            "</button></div>"
+          : "";
+        const listaMostrar = showPastEvents
+          ? [...futuros, ...pasados]
+          : futuros;
+        if (!listaMostrar.length && !pasados.length) {
           document.getElementById("cal-list").innerHTML =
             '<div class="empty-h">Sin eventos</div>';
           return;
         }
-        const hoy = new Date().toISOString().slice(0, 10);
-        document.getElementById("cal-list").innerHTML = D.ev
-          .map((e) => {
-            const pasado = esPasado(e.f, e.h),
-              esHoy = e.f === hoy,
-              col = CAT_COLORS[e.cat || "general"];
-            const badge = esHoy
-              ? '<span style="background:#fde68a;color:#92400e;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:700;">HOY</span> '
-              : pasado
-                ? '<span style="background:#f3f4f6;color:#9ca3af;font-size:10px;padding:1px 6px;border-radius:10px;">pasado</span> '
-                : "";
-            const recLabel = e.recurrente
-              ? '<span style="font-size:10px;color:#888;margin-left:4px;">' +
-                e.recurrente +
-                "</span>"
-              : "";
-            return (
-              '<div class="p-item" style="background:' +
-              col.bg +
-              ";border-left:3px solid " +
-              col.border +
-              ";" +
-              (pasado && !esHoy ? "opacity:.55;" : "") +
-              '"><div class="p-item-main">' +
-              badge +
-              '<span class="p-label">' +
-              fmtD(e.f) +
-              " " +
-              (e.h || "") +
-              "</span> &mdash; " +
-              e.a +
-              recLabel +
-              '</div><div class="p-actions"><button class="ebtn" onclick="editEv(\'' +
-              e.id +
-              '\')">&#9999;</button><button class="dbtn" onclick="delEv(\'' +
-              e.id +
-              "')\">&#128465;</button></div></div>"
-            );
-          })
-          .join("");
+        if (!listaMostrar.length) {
+          document.getElementById("cal-list").innerHTML =
+            '<div class="empty-h">Sin eventos pr\u00f3ximos</div>' + toggleBtn;
+          return;
+        }
+        document.getElementById("cal-list").innerHTML =
+          listaMostrar.map((e) => evItemHTML(e, hoy)).join("") + toggleBtn;
       }
 
       /* ========== CONTACTS ========== */
@@ -3733,11 +3757,24 @@
       }
 
       /* ========== PIZARRA VIEW ========== */
+      window.togglePastEventsPiz = function () {
+        showPastEventsPiz = !showPastEventsPiz;
+        renderPizEvents();
+      };
       function renderPizEvents() {
         const hoy = new Date().toISOString().slice(0, 10);
-        const prox = D.ev.filter((e) => !esPasado(e.f, e.h) || e.f === hoy),
-          pas = D.ev.filter((e) => esPasado(e.f, e.h) && e.f !== hoy);
-        const lista = [...prox, ...pas].slice(0, 7);
+        const prox = D.ev.filter((e) => !esPasado(e.f, e.h));
+        const pas = D.ev.filter((e) => esPasado(e.f, e.h));
+        const lista = showPastEventsPiz
+          ? [...prox, ...pas].slice(0, 10)
+          : prox.slice(0, 7);
+        const toggleHtml = pas.length
+          ? '<button onclick="togglePastEventsPiz()" style="font-family:Nunito,sans-serif;font-size:10px;padding:3px 10px;border-radius:12px;border:1.5px solid #ddd;background:white;color:#888;cursor:pointer;margin-top:5px;width:100%;">' +
+            (showPastEventsPiz
+              ? "&#9650; Ocultar pasados"
+              : "&#9660; Ver pasados (" + pas.length + ")") +
+            "</button>"
+          : "";
         document.getElementById("piz-events").innerHTML = lista.length
           ? lista
               .map((e) => {
@@ -3761,8 +3798,9 @@
                   "</span></div>"
                 );
               })
-              .join("")
-          : '<div class="empty-h">Sin eventos</div>';
+              .join("") +
+            toggleHtml
+          : '<div class="empty-h">Sin eventos</div>' + toggleHtml;
       }
       function renderPizContacts() {
         if (!D.con.length) {
@@ -3770,10 +3808,8 @@
             '<div class="empty-h">Sin contactos</div>';
           return;
         }
-        const em = D.con.filter((c) => c.cat === "emergencia").slice(0, 3),
-          ot = D.con
-            .filter((c) => c.cat !== "emergencia")
-            .slice(0, 5 - em.length);
+        const em = D.con.filter((c) => c.cat === "emergencia"),
+          ot = D.con.filter((c) => c.cat !== "emergencia");
         document.getElementById("piz-contacts").innerHTML = [...em, ...ot]
           .map((c) => {
             const ie = c.cat === "emergencia",
